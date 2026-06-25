@@ -1880,14 +1880,27 @@
 <!-- ADD BOOK MODAL -->
 <div class="modal-overlay" id="addModal">
   <div class="modal">
-    <button class="modal-close" onclick="closeAddModal()">✕</button>
+    <button class="modal-close" onclick="closeAddModal()">&#x2715;</button>
     <div class="modal-title">Add a Book</div>
-    <div class="modal-sub">Type a book title (and optionally the author). Claude will research it and generate a full summary card — insights, lateral leaps, and quick actions — in the style of your library.</div>
+    <div class="modal-sub">Claude generates a full card and saves it permanently to your GitHub repo so it's visible to everyone, on any device, forever.</div>
 
     <details class="api-key-section">
-      <summary>🔑 Anthropic API Key (required once)</summary>
-      <input type="password" id="apiKeyInput" placeholder="sk-ant-..." oninput="saveApiKey(this.value)" />
-      <div style="font-size:0.75rem; color:#a09080; margin-top:8px;">Saved locally in your browser. Get a key at console.anthropic.com.</div>
+      <summary>&#x1F511; Anthropic API Key (required once)</summary>
+      <input type="password" id="apiKeyInput" placeholder="sk-ant-..." />
+      <div style="font-size:0.75rem; color:#a09080; margin-top:8px;">Get a key at console.anthropic.com. Saved in your browser only.</div>
+    </details>
+
+    <details class="api-key-section">
+      <summary>&#x1F419; GitHub Settings (required once)</summary>
+      <div style="margin-top:12px;">
+        <label>Personal Access Token</label>
+        <input type="password" id="ghTokenInput" placeholder="github_pat_..." />
+        <div style="font-size:0.72rem; color:#a09080; margin-bottom:16px;">Go to GitHub Settings &rarr; Developer settings &rarr; Fine-grained tokens. Grant <strong>Contents: Read &amp; Write</strong> on your repo.</div>
+        <label>Repository (owner/repo)</label>
+        <input type="text" id="ghRepoInput" placeholder="yourname/my-books" />
+        <label>File path in repo</label>
+        <input type="text" id="ghPathInput" placeholder="index.html" />
+      </div>
     </details>
 
     <label>Book Title *</label>
@@ -1899,7 +1912,7 @@
     <label>Your Notes (optional)</label>
     <textarea id="bookNotesInput" placeholder="What stood out to you? What do you want to remember? (Leave blank for a full AI summary)"></textarea>
 
-    <button class="modal-btn" id="generateBtn" onclick="generateBook()">✨ Generate Book Card</button>
+    <button class="modal-btn" id="generateBtn" onclick="generateBook()">&#x2728; Generate &amp; Save to GitHub</button>
     <div class="modal-status" id="modalStatus"></div>
   </div>
 </div>
@@ -1924,11 +1937,8 @@ function showBook(id) {
     setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
   }
   document.querySelectorAll('.shelf-book').forEach(b => {
-    if (b.getAttribute('onclick') && b.getAttribute('onclick').includes(id)) {
-      b.classList.add('active');
-    }
+    if (b.getAttribute('onclick') && b.getAttribute('onclick').includes(id)) b.classList.add('active');
   });
-  // Also highlight dynamic shelf buttons
   document.querySelectorAll('[data-book-id]').forEach(b => {
     b.classList.toggle('active', b.dataset.bookId === id);
   });
@@ -1943,87 +1953,48 @@ function togglePyramid(el) {
 }
 
 // ═══════════════════════════════════════
-// STATIC BOOK REGISTRY (built-ins)
+// CREDENTIALS (localStorage — browser only)
 // ═══════════════════════════════════════
-const BUILTIN_BOOKS = [
-  { id: 'people-skills', title: 'People Skills for Analytical Thinkers', author: 'Gilbert Eijkelenboom', tagEmoji: '🧠', tagLabel: 'Influence', tagline: 'Read people like code — then run better programs together' },
-  { id: 'big-trust',     title: 'Big Trust',                              author: 'Shadé Zahrai',           tagEmoji: '🔑', tagLabel: 'Confidence', tagline: "You can't outperform self-doubt — but you can rewire it with 4 inner upgrades" },
-  { id: 'mattering',     title: 'Mattering',                              author: 'Jennifer Breheny Wallace',tagEmoji: '🫂', tagLabel: 'Connection', tagline: 'Loneliness, burnout, rage — all symptoms of the same unmet need to matter' },
-  { id: 'datastory',     title: 'DataStory',                              author: 'Nancy Duarte',           tagEmoji: '📊', tagLabel: 'Communication', tagline: "Data without story is trivia — here's the formula to make numbers move people" },
-  { id: 'next-conversation', title: 'The Next Conversation',              author: 'Jefferson Fisher',       tagEmoji: '🗣️', tagLabel: 'Conflict', tagline: 'Stop trying to win — arguments are knots to unravel, not battles to win' },
-];
+function getApiKey()    { return localStorage.getItem('bookbrain_apikey') || ''; }
+function saveApiKey(k)  { localStorage.setItem('bookbrain_apikey', k); }
+function getGhToken()   { return localStorage.getItem('bookbrain_ghtoken') || ''; }
+function saveGhToken(k) { localStorage.setItem('bookbrain_ghtoken', k); }
+function getGhRepo()    { return localStorage.getItem('bookbrain_ghrepo') || ''; }   // "owner/repo"
+function saveGhRepo(k)  { localStorage.setItem('bookbrain_ghrepo', k); }
+function getGhPath()    { return localStorage.getItem('bookbrain_ghpath') || 'index.html'; }
+function saveGhPath(k)  { localStorage.setItem('bookbrain_ghpath', k); }
 
 // ═══════════════════════════════════════
-// LOCAL STORAGE
-// ═══════════════════════════════════════
-function getUserBooks() {
-  try { return JSON.parse(localStorage.getItem('bookbrain_books') || '[]'); } catch { return []; }
-}
-function saveUserBooks(books) {
-  localStorage.setItem('bookbrain_books', JSON.stringify(books));
-}
-function getApiKey() { return localStorage.getItem('bookbrain_apikey') || ''; }
-function saveApiKey(k) { localStorage.setItem('bookbrain_apikey', k); }
-
-// ═══════════════════════════════════════
-// RENDER
+// RENDER (index + shelf — books are now baked into HTML)
 // ═══════════════════════════════════════
 function renderAll() {
-  renderUserBookCards();
   renderIndex();
   renderShelf();
 }
 
 function renderShelf() {
-  const shelf = document.querySelector('.shelf');
-  // Remove previously injected dynamic shelf items
-  shelf.querySelectorAll('[data-book-id]').forEach(el => el.remove());
-  const addBtn = shelf.querySelector('.shelf-book-add');
-  const userBooks = getUserBooks();
-  userBooks.forEach(book => {
-    const div = document.createElement('div');
-    div.className = 'shelf-book';
-    div.dataset.bookId = book.id;
-    div.setAttribute('onclick', `showBook('${book.id}')`);
-    div.innerHTML = `<div class="b-title">${escHtml(book.title)}</div><div class="b-keyword">${escHtml(book.tagEmoji || '📖')} ${escHtml(book.tagline || '')}</div>`;
-    shelf.insertBefore(div, addBtn);
-  });
+  // Nothing dynamic to inject — all books are in the HTML
 }
 
 function renderIndex() {
   const container = document.getElementById('index-entries');
   if (!container) return;
-  const allBooks = [...BUILTIN_BOOKS, ...getUserBooks()];
-  container.innerHTML = allBooks.map(book => `
-    <div class="index-entry" onclick="showBook('${book.id}')">
-      <div>
-        <div class="index-book-title">${escHtml(book.title)}</div>
-        <div class="index-book-author">${escHtml(book.author)} &nbsp;·&nbsp; <em>${escHtml(book.tagline || '')}</em></div>
-      </div>
-      <div class="index-tag">${escHtml(book.tagEmoji || '📖')} ${escHtml(book.tagLabel || 'Reading')}</div>
-    </div>
-  `).join('');
-}
-
-function renderUserBookCards() {
-  const container = document.getElementById('user-books');
-  if (!container) return;
-  const userBooks = getUserBooks();
-  container.innerHTML = userBooks.map(book => `
-    <div class="book-card" id="${book.id}">
-      ${book.html}
-      <div style="margin-top: 8px; margin-bottom: 48px;">
-        <button class="delete-book-btn" onclick="deleteBook('${book.id}')">🗑 Remove this book</button>
-      </div>
-    </div>
-  `).join('');
-}
-
-function deleteBook(id) {
-  if (!confirm('Remove this book from your library?')) return;
-  const books = getUserBooks().filter(b => b.id !== id);
-  saveUserBooks(books);
-  renderAll();
+  // Collect all book cards present in the DOM
+  const cards = Array.from(document.querySelectorAll('.book-card[id]'));
+  container.innerHTML = cards.map(card => {
+    const id = card.id;
+    const title = card.querySelector('.book-title')?.textContent?.trim() || id;
+    const author = card.querySelector('.book-author')?.textContent?.replace(/^by\s*/i,'').trim() || '';
+    const tagline = card.querySelector('.one-liner')?.textContent?.trim() || '';
+    return `
+      <div class="index-entry" onclick="showBook('${id}')">
+        <div>
+          <div class="index-book-title">${escHtml(title)}</div>
+          <div class="index-book-author">${escHtml(author)} &nbsp;·&nbsp; <em>${escHtml(tagline)}</em></div>
+        </div>
+        <div class="index-tag">📖 Reading</div>
+      </div>`;
+  }).join('');
 }
 
 function escHtml(str) {
@@ -2034,10 +2005,13 @@ function escHtml(str) {
 // MODAL
 // ═══════════════════════════════════════
 function openAddModal() {
-  document.getElementById('addModal').classList.add('open');
+  const modal = document.getElementById('addModal');
+  modal.classList.add('open');
   document.getElementById('bookTitleInput').focus();
-  // Pre-fill API key if saved
   document.getElementById('apiKeyInput').value = getApiKey();
+  document.getElementById('ghTokenInput').value = getGhToken();
+  document.getElementById('ghRepoInput').value = getGhRepo();
+  document.getElementById('ghPathInput').value = getGhPath();
 }
 function closeAddModal() {
   document.getElementById('addModal').classList.remove('open');
@@ -2053,7 +2027,7 @@ document.getElementById('addModal').addEventListener('click', function(e) {
 });
 
 // ═══════════════════════════════════════
-// AI BOOK GENERATION
+// STEP CYCLER
 // ═══════════════════════════════════════
 const GENERATION_STEPS = [
   'Researching the book…',
@@ -2061,81 +2035,179 @@ const GENERATION_STEPS = [
   'Building core insights…',
   'Finding lateral leaps…',
   'Crafting quick actions…',
-  'Polishing the card…',
+  'Saving to GitHub…',
 ];
 let stepInterval = null;
-
 function startStepCycler() {
   let i = 0;
   const el = document.getElementById('generatingStep');
   el.textContent = GENERATION_STEPS[0];
-  stepInterval = setInterval(() => {
-    i = (i + 1) % GENERATION_STEPS.length;
-    el.textContent = GENERATION_STEPS[i];
-  }, 2200);
+  stepInterval = setInterval(() => { i = (i+1) % (GENERATION_STEPS.length-1); el.textContent = GENERATION_STEPS[i]; }, 2200);
 }
-function stopStepCycler() {
+function stopStepCycler(finalMsg) {
   clearInterval(stepInterval);
+  if (finalMsg) document.getElementById('generatingStep').textContent = finalMsg;
 }
 
+// ═══════════════════════════════════════
+// GITHUB API HELPERS
+// ═══════════════════════════════════════
+
+// Fetch the current file SHA + content from GitHub
+async function ghGetFile(token, repo, path) {
+  const res = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
+    headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json' }
+  });
+  if (!res.ok) throw new Error(`GitHub fetch failed: ${res.status} ${await res.text()}`);
+  return res.json(); // { sha, content (base64) }
+}
+
+// Commit updated content back to GitHub
+async function ghPutFile(token, repo, path, sha, contentB64, message) {
+  const res = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
+    method: 'PUT',
+    headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message, content: contentB64, sha })
+  });
+  if (!res.ok) throw new Error(`GitHub commit failed: ${res.status} ${await res.text()}`);
+  return res.json();
+}
+
+// Inject the new book card + shelf item into the HTML string, then return updated HTML
+function injectBookIntoHtml(originalHtml, bookId, bookHtml, shelfHtml, indexEntryHtml) {
+  // 1. Insert book card before the <!-- DYNAMIC BOOK CARDS --> comment
+  let updated = originalHtml.replace(
+    /<!-- DYNAMIC BOOK CARDS \(user-added\) -->/,
+    `<!-- DYNAMIC BOOK CARDS (user-added) -->\n  <div class="book-card" id="${bookId}">\n${bookHtml}\n  </div>`
+  );
+
+  // 2. Insert shelf item before the add button
+  updated = updated.replace(
+    /(\s*<button class="shelf-book-add")/,
+    `\n    ${shelfHtml}$1`
+  );
+
+  // 3. Insert index entry before the closing </div> of #index-entries
+  updated = updated.replace(
+    /(<div id="index-entries">)([\s\S]*?)(<\/div>\s*<!-- DYNAMIC BOOK CARDS)/,
+    (_, open, inner, close) => `${open}${inner}    ${indexEntryHtml}\n  ${close}`
+  );
+
+  return updated;
+}
+
+// ═══════════════════════════════════════
+// MAIN: GENERATE + COMMIT
+// ═══════════════════════════════════════
 async function generateBook() {
-  const title = document.getElementById('bookTitleInput').value.trim();
-  const author = document.getElementById('bookAuthorInput').value.trim();
-  const notes = document.getElementById('bookNotesInput').value.trim();
-  const apiKey = document.getElementById('apiKeyInput').value.trim() || getApiKey();
+  const title    = document.getElementById('bookTitleInput').value.trim();
+  const author   = document.getElementById('bookAuthorInput').value.trim();
+  const notes    = document.getElementById('bookNotesInput').value.trim();
+  const apiKey   = document.getElementById('apiKeyInput').value.trim() || getApiKey();
+  const ghToken  = document.getElementById('ghTokenInput').value.trim() || getGhToken();
+  const ghRepo   = document.getElementById('ghRepoInput').value.trim() || getGhRepo();
+  const ghPath   = document.getElementById('ghPathInput').value.trim() || getGhPath();
 
-  if (!title) {
-    showStatus('Please enter a book title.', true);
-    return;
-  }
-  if (!apiKey) {
-    showStatus('Please enter your Anthropic API key (expand the section above).', true);
-    return;
-  }
+  if (!title)   { showStatus('Please enter a book title.', true); return; }
+  if (!apiKey)  { showStatus('Please add your Anthropic API key.', true); return; }
+  if (!ghToken) { showStatus('Please add your GitHub token (expand GitHub Settings above).', true); return; }
+  if (!ghRepo)  { showStatus('Please enter your GitHub repo (e.g. username/my-books).', true); return; }
 
-  saveApiKey(apiKey);
+  // Save credentials
+  saveApiKey(apiKey); saveGhToken(ghToken); saveGhRepo(ghRepo); saveGhPath(ghPath);
+
   document.getElementById('generateBtn').disabled = true;
   showStatus('');
-
   document.getElementById('generatingOverlay').classList.add('open');
   startStepCycler();
 
   const bookId = 'book-' + Date.now();
-  const authorNote = author ? `by ${author}` : '';
-  const notesNote = notes ? `\n\nThe reader's personal notes/highlights: "${notes}"` : '';
 
-  const systemPrompt = `You are a book summary writer for a personal reading library website called Book Brain. 
-Your job: generate a rich HTML snippet for ONE book card, exactly matching the style system below.
-Output ONLY valid HTML — no markdown, no code fences, no explanation. The HTML will be injected directly into a webpage.
+  // ── STEP 1: Generate HTML with Claude ──
+  const systemPrompt = `You are a book summary writer for a personal reading library website called Book Brain.
+Output ONLY valid HTML — no markdown, no code fences, no preamble, no explanation whatsoever.
 
-DESIGN SYSTEM (use these exact CSS classes):
-- book-header / book-title / book-author / one-liner
-- big-idea / big-idea-label
-- section-title + icon span
-- insights div > insight divs (onclick="toggleInsight(this)")
-  - insight-toggle, insight-num, insight-title, insight-body
-- lateral div > lateral-card divs (lateral-emoji, lateral-field, lateral-title, lateral-body)
-- apply-grid > apply-card (apply-step, apply-action, apply-body)
-- kw spans for key terms
-- Colors available as CSS vars: --teal, --amber, --rust, --lavender, --ink, --paper, --cream
+Produce sections in EXACTLY this order, using EXACTLY these HTML structures:
 
-STRUCTURE TO FOLLOW (produce all sections in this order):
-1. book-header with title, author, and one-liner tagline
-2. big-idea section — ELI10 explanation of the core idea using an analogy
-3. section-title + insights (5-6 expandable insights, each with a title and meaty body)
-4. section-title + lateral (4-5 lateral leap cards connecting the book to surprising fields)
-5. section-title + apply-grid (4 quick action cards)
+━━━ SECTION 1: BOOK HEADER ━━━
+<div class="book-header">
+  <div>
+    <div class="book-title">TITLE HERE<br>SUBTITLE IF ANY</div>
+    <div class="book-author">by AUTHOR NAME</div>
+  </div>
+  <div class="one-liner">Poetic tagline<br>in 2 to 3<br>short lines</div>
+</div>
 
-Write substantively — each insight body should be 100-180 words. Make it feel smart, warm, and practical.
-Use <span class="kw"> for key terms throughout.
-The one-liner should be poetic and memorable (2-3 short lines separated by <br>).`;
+━━━ SECTION 2: BIG IDEA ━━━
+<div class="big-idea">
+  <div class="big-idea-label">⚡ The Big Idea (ELI10)</div>
+  <p>A vivid analogy explanation of the core idea, 60-90 words. Use <strong> for emphasis and <span class="kw">key terms</span> for concepts.</p>
+</div>
 
-  const userPrompt = `Generate a complete book card for: "${title}" ${authorNote}${notesNote}
+━━━ SECTION 3: CORE INSIGHTS ━━━
+<div class="section-title">
+  <span class="icon" style="background:#e8f5f3;">🔍</span>
+  Core Insights — Click to Expand
+</div>
+<div class="insights">
+  <div class="insight" onclick="toggleInsight(this)">
+    <span class="insight-toggle">+</span>
+    <div class="insight-num">Insight 01</div>
+    <div class="insight-title">The Insight Title Here</div>
+    <div class="insight-body">
+      Body text 120-180 words. Use <strong>bold</strong> for sub-points, <span class="kw">key terms</span> for concepts, and <em>italics</em> for emphasis. Separate paragraphs with <br><br>.
+    </div>
+  </div>
+  [repeat for Insight 02 through Insight 06 — always exactly 6 insights]
+</div>
 
-Return only the inner HTML (starting from <div class="book-header">, ending after the apply-grid div). Do NOT include the outer <div class="book-card"> wrapper or any id attribute — those are added by the system.`;
+━━━ SECTION 4: LATERAL LEAPS ━━━
+<div class="section-title">
+  <span class="icon" style="background:#fdf0e0;">🚀</span>
+  Lateral Leaps — Where This Changes Everything
+</div>
+<div class="lateral">
+  <div class="lateral-card">
+    <div class="lateral-emoji">🔮</div>
+    <div>
+      <div class="lateral-field">Field Name In Caps Style</div>
+      <div class="lateral-title">Punchy Cross-Domain Title</div>
+      <div class="lateral-body">80-120 words connecting this book's ideas to this field. Use <span class="kw">key terms</span> to cross-reference the book's concepts.</div>
+    </div>
+  </div>
+  [repeat for 5 lateral cards total, each a different field]
+</div>
+
+━━━ SECTION 5: QUICK APPLY ━━━
+<div class="section-title">
+  <span class="icon" style="background:#fdf0e0;">⚡</span>
+  Try These This Week
+</div>
+<div class="apply-grid">
+  <div class="apply-card">
+    <div class="apply-step">Action 01 — Theme Word</div>
+    <div class="apply-action">Short Action Title</div>
+    <div class="apply-body">40-60 words. Concrete, specific, immediately actionable.</div>
+  </div>
+  [repeat for Action 02, 03, 04]
+</div>
+
+RULES:
+- Use <span class="kw"> for every key term from the book
+- Use <br><br> between paragraphs inside insight-body (not <p> tags)
+- insight-num values: "Insight 01", "Insight 02", etc — always zero-padded
+- apply-step format: "Action 01 — Word" where Word hints at the theme (e.g. "Action 01 — Awareness")
+- The one-liner must be 2-3 very short lines separated by <br>, poetic and memorable
+- Do NOT add any wrapper div, id attribute, or anything outside these 5 sections
+- Do NOT use any CSS classes not listed above`;
+
+  const userPrompt = `Generate a complete book card for: "${title}"${author ? ` by ${author}` : ''}${notes ? `\n\nReader's personal notes/highlights: "${notes}"` : ''}
+
+Follow the structure template exactly. Start your output with <div class="book-header"> and end it with the closing </div> of the apply-grid div. Nothing before, nothing after.`;
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    // Generate with Claude
+    const aiRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -2143,71 +2215,82 @@ Return only the inner HTML (starting from <div class="book-header">, ending afte
         'anthropic-version': '2023-06-01',
         'anthropic-dangerous-direct-browser-access': 'true',
       },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 4000,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: userPrompt }],
-      }),
+      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 4000, system: systemPrompt, messages: [{ role: 'user', content: userPrompt }] }),
     });
 
-    stopStepCycler();
-    document.getElementById('generatingOverlay').classList.remove('open');
-
-    if (!response.ok) {
-      const err = await response.json().catch(() => ({}));
-      const msg = err?.error?.message || `API error ${response.status}`;
-      showStatus('Error: ' + msg, true);
-      document.getElementById('generateBtn').disabled = false;
-      return;
+    if (!aiRes.ok) {
+      const err = await aiRes.json().catch(() => ({}));
+      throw new Error(err?.error?.message || `Anthropic API error ${aiRes.status}`);
     }
 
-    const data = await response.json();
-    const html = data.content?.find(b => b.type === 'text')?.text || '';
+    const aiData = await aiRes.json();
+    const generatedHtml = aiData.content?.find(b => b.type === 'text')?.text || '';
+    if (!generatedHtml || generatedHtml.length < 100) throw new Error('Generated content was empty. Please try again.');
 
-    if (!html || html.length < 100) {
-      showStatus('Generated content was empty. Try again.', true);
-      document.getElementById('generateBtn').disabled = false;
-      return;
-    }
-
-    // Determine metadata from the generated HTML (best-effort parse)
+    // Parse metadata from generated HTML
     const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = html;
-    const detectedTitle = tempDiv.querySelector('.book-title')?.textContent?.trim() || title;
-    const detectedAuthor = tempDiv.querySelector('.book-author')?.textContent?.replace(/^by\s*/i,'').trim() || author;
-    const detectedTagline = tempDiv.querySelector('.one-liner')?.textContent?.trim() || '';
+    tempDiv.innerHTML = generatedHtml;
+    const detectedTitle   = tempDiv.querySelector('.book-title')?.textContent?.trim() || title;
+    const detectedAuthor  = tempDiv.querySelector('.book-author')?.textContent?.replace(/^by\s*/i,'').trim() || author || '';
+    const detectedTagline = tempDiv.querySelector('.one-liner')?.textContent?.replace(/\s+/g,' ').trim() || '';
 
-    // Tag emoji + label (simple heuristic based on content)
-    const tagEmoji = '📖';
-    const tagLabel = 'Reading';
+    // ── STEP 2: Fetch current index.html from GitHub ──
+    stopStepCycler('Saving to GitHub…');
+    document.getElementById('generatingStep').textContent = 'Fetching your file from GitHub…';
 
-    const newBook = {
-      id: bookId,
-      title: detectedTitle || title,
-      author: detectedAuthor || author || 'Unknown',
-      tagline: detectedTagline,
-      tagEmoji,
-      tagLabel,
-      html,
-    };
+    const ghFile = await ghGetFile(ghToken, ghRepo, ghPath);
+    const originalHtml = decodeURIComponent(escape(atob(ghFile.content.replace(/\n/g,''))));
 
-    const books = getUserBooks();
-    books.push(newBook);
-    saveUserBooks(books);
+    // ── STEP 3: Build the shelf + index HTML snippets ──
+    const shelfItemHtml = `<div class="shelf-book" onclick="showBook('${bookId}')"><div class="b-title">${escHtml(detectedTitle)}</div><div class="b-keyword">📖 ${escHtml(detectedTagline.slice(0,50))}</div></div>`;
 
-    renderAll();
+    const indexEntryHtml = `<div class="index-entry" onclick="showBook('${bookId}')">
+      <div>
+        <div class="index-book-title">${escHtml(detectedTitle)}</div>
+        <div class="index-book-author">${escHtml(detectedAuthor)} &nbsp;·&nbsp; <em>${escHtml(detectedTagline)}</em></div>
+      </div>
+      <div class="index-tag">📖 Reading</div>
+    </div>`;
+
+    // ── STEP 4: Inject into HTML ──
+    document.getElementById('generatingStep').textContent = 'Patching your file…';
+    const updatedHtml = injectBookIntoHtml(originalHtml, bookId, generatedHtml, shelfItemHtml, indexEntryHtml);
+
+    // ── STEP 5: Commit to GitHub ──
+    document.getElementById('generatingStep').textContent = 'Committing to GitHub…';
+    const updatedB64 = btoa(unescape(encodeURIComponent(updatedHtml)));
+    await ghPutFile(ghToken, ghRepo, ghPath, ghFile.sha, updatedB64, `Add book: ${detectedTitle}`);
+
+    // ── DONE ──
+    stopStepCycler('Done! Reloading…');
+    document.getElementById('generatingOverlay').classList.remove('open');
     closeAddModal();
 
-    // Show the new card
-    setTimeout(() => showBook(bookId), 100);
+    // Show success then reload so the new baked-in card appears
+    showToast(`"${detectedTitle}" added! GitHub Pages is rebuilding — reload in ~30 seconds.`);
 
   } catch (err) {
     stopStepCycler();
     document.getElementById('generatingOverlay').classList.remove('open');
-    showStatus('Network error: ' + err.message, true);
+    showStatus('Error: ' + err.message, true);
     document.getElementById('generateBtn').disabled = false;
   }
+}
+
+// ═══════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════
+function showToast(msg) {
+  let toast = document.getElementById('bookbrain-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'bookbrain-toast';
+    toast.style.cssText = `position:fixed;bottom:32px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--amber);font-family:'Fraunces',serif;font-size:0.95rem;padding:16px 28px;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.3);z-index:9999;max-width:480px;text-align:center;line-height:1.5;border:2px solid var(--amber);`;
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  toast.style.opacity = '1';
+  setTimeout(() => { toast.style.transition='opacity 0.6s'; toast.style.opacity='0'; }, 6000);
 }
 
 function showStatus(msg, isError = false) {
@@ -2221,7 +2304,6 @@ function showStatus(msg, isError = false) {
 // ═══════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
   renderAll();
-  // Show first book by default
   const first = document.querySelector('.book-card.visible');
   if (!first) showBook('people-skills');
 });
