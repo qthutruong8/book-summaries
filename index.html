@@ -1,0 +1,2230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Book Brain — My Smart Reading Notes</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1410;
+    --paper: #faf6f0;
+    --cream: #f2ebe0;
+    --amber: #e8a020;
+    --rust: #c4401a;
+    --teal: #1a7a6e;
+    --lavender: #6b4fa0;
+    --link-color: #c4401a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--ink);
+    padding: 28px 40px 24px;
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 4px solid var(--amber);
+  }
+
+  .logo {
+    font-family: 'Fraunces', serif;
+    font-size: 2rem;
+    font-weight: 900;
+    color: var(--amber);
+    letter-spacing: -1px;
+  }
+
+  .logo-sub {
+    font-size: 0.8rem;
+    color: #a09080;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
+  /* ── LAYOUT ── */
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  /* ── LIBRARY SHELF ── */
+  .shelf-label {
+    font-size: 0.72rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #a09080;
+    font-weight: 600;
+    margin-bottom: 16px;
+  }
+
+  .shelf {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 52px;
+  }
+
+  .shelf-book {
+    background: var(--cream);
+    border: 2px solid transparent;
+    border-radius: 6px;
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    max-width: 200px;
+  }
+
+  .shelf-book:hover, .shelf-book.active {
+    border-color: var(--amber);
+    background: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+  }
+
+  .shelf-book .b-title {
+    font-family: 'Fraunces', serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    line-height: 1.3;
+    margin-bottom: 4px;
+  }
+
+  .shelf-book .b-keyword {
+    font-size: 0.72rem;
+    color: var(--rust);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+
+  /* ── BOOK CARD ── */
+  .book-card {
+    display: none;
+    animation: fadeUp 0.4s ease;
+  }
+
+  .book-card.visible { display: block; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .book-header {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 24px;
+    align-items: start;
+    margin-bottom: 40px;
+    padding-bottom: 32px;
+    border-bottom: 2px solid var(--cream);
+  }
+
+  .book-title {
+    font-family: 'Fraunces', serif;
+    font-size: 2.4rem;
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: -1px;
+  }
+
+  .book-author {
+    font-size: 0.9rem;
+    color: #7a6a5a;
+    margin-top: 8px;
+    font-weight: 500;
+  }
+
+  .one-liner {
+    background: var(--ink);
+    color: var(--amber);
+    font-family: 'Fraunces', serif;
+    font-size: 1rem;
+    font-style: italic;
+    padding: 14px 20px;
+    border-radius: 8px;
+    max-width: 220px;
+    line-height: 1.4;
+    text-align: center;
+    align-self: center;
+  }
+
+  /* ── BIG IDEA ── */
+  .big-idea {
+    background: linear-gradient(135deg, #1a1410 0%, #2d2018 100%);
+    color: var(--paper);
+    border-radius: 16px;
+    padding: 36px;
+    margin-bottom: 36px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .big-idea::before {
+    content: '"';
+    font-family: 'Fraunces', serif;
+    font-size: 12rem;
+    color: rgba(232,160,32,0.1);
+    position: absolute;
+    top: -40px;
+    left: 20px;
+    line-height: 1;
+  }
+
+  .big-idea-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--amber);
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+
+  .big-idea p {
+    font-size: 1.15rem;
+    line-height: 1.7;
+    color: #e8ddd0;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── SECTIONS ── */
+  .section-title {
+    font-family: 'Fraunces', serif;
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-title .icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+
+  /* ── INSIGHT CARDS ── */
+  .insights {
+    display: grid;
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+
+  .insight {
+    background: #fff;
+    border-radius: 12px;
+    padding: 22px 24px;
+    border-left: 4px solid var(--teal);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .insight:hover {
+    transform: translateX(4px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  }
+
+  .insight:nth-child(2) { border-left-color: var(--amber); }
+  .insight:nth-child(3) { border-left-color: var(--rust); }
+  .insight:nth-child(4) { border-left-color: var(--lavender); }
+  .insight:nth-child(5) { border-left-color: var(--teal); }
+  .insight:nth-child(6) { border-left-color: var(--amber); }
+
+  .insight-num {
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #a09080;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .insight-title {
+    font-family: 'Fraunces', serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    line-height: 1.3;
+  }
+
+  .insight-body {
+    font-size: 0.88rem;
+    line-height: 1.65;
+    color: #4a3e30;
+    display: none;
+  }
+
+  .insight.open .insight-body { display: block; }
+
+  .insight-toggle {
+    float: right;
+    font-size: 1.2rem;
+    color: #a09080;
+    line-height: 1;
+    transition: transform 0.2s;
+  }
+
+  .insight.open .insight-toggle { transform: rotate(45deg); }
+
+  /* ── KEYWORD PILLS ── */
+  .kw {
+    display: inline-block;
+    background: rgba(196,64,26,0.1);
+    color: var(--rust);
+    border: 1px solid rgba(196,64,26,0.25);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-size: 0.82em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-decoration: none;
+  }
+
+  .kw:hover {
+    background: var(--rust);
+    color: white;
+  }
+
+  /* ── LATERAL LEAPS ── */
+  .lateral {
+    display: grid;
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+
+  .lateral-card {
+    background: linear-gradient(135deg, var(--cream) 0%, #ede4d8 100%);
+    border-radius: 12px;
+    padding: 22px 24px;
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    gap: 18px;
+    align-items: start;
+  }
+
+  .lateral-emoji {
+    font-size: 2rem;
+    text-align: center;
+    padding-top: 2px;
+  }
+
+  .lateral-field {
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--teal);
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .lateral-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 6px;
+  }
+
+  .lateral-body {
+    font-size: 0.86rem;
+    color: #5a4a38;
+    line-height: 1.6;
+  }
+
+  /* ── NEEDS PYRAMID ── */
+  .pyramid {
+    background: #fff;
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 40px;
+    text-align: center;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+  }
+
+  .pyramid-level {
+    margin: 4px auto;
+    border-radius: 6px;
+    padding: 12px 16px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: white;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+
+  .pyramid-level:hover { opacity: 0.85; }
+  .pyramid-level:nth-child(1) { width: 40%; background: var(--lavender); }
+  .pyramid-level:nth-child(2) { width: 60%; background: var(--teal); }
+  .pyramid-level:nth-child(3) { width: 80%; background: var(--amber); }
+  .pyramid-level:nth-child(4) { width: 95%; background: #6a5040; font-size: 0.8rem; }
+  .pyramid-detail { display: none; margin-top: 6px; font-size: 0.8rem; color: #7a6a5a; }
+  .pyramid-level.open + .pyramid-detail { display: block; }
+
+  /* ── QUICK APPLY ── */
+  .apply-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 40px;
+  }
+
+  @media (max-width: 600px) { .apply-grid { grid-template-columns: 1fr; } }
+
+  .apply-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 18px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+  }
+
+  .apply-step {
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--amber);
+    margin-bottom: 6px;
+  }
+
+  .apply-action {
+    font-family: 'Fraunces', serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .apply-body {
+    font-size: 0.82rem;
+    color: #5a4a38;
+    line-height: 1.55;
+  }
+
+  /* ── BOOK INDEX ── */
+  .index-section {
+    background: var(--ink);
+    border-radius: 16px;
+    padding: 32px;
+    color: var(--paper);
+  }
+
+  .index-title {
+    font-family: 'Fraunces', serif;
+    font-size: 1.4rem;
+    font-weight: 900;
+    color: var(--amber);
+    margin-bottom: 4px;
+  }
+
+  .index-sub {
+    font-size: 0.78rem;
+    color: #a09080;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+
+  .index-entry {
+    border-top: 1px solid #2d2018;
+    padding: 14px 0;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .index-entry:hover { padding-left: 8px; }
+
+  .index-book-title {
+    font-family: 'Fraunces', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--paper);
+    margin-bottom: 3px;
+  }
+
+  .index-book-author {
+    font-size: 0.78rem;
+    color: #9a8a7a;
+  }
+
+  .index-tag {
+    background: rgba(232,160,32,0.15);
+    color: var(--amber);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+  }
+</style>
+
+<style>
+/* ── ADD BOOK BUTTON (shelf) ── */
+.shelf-book-add {
+  background: transparent;
+  border: 2px dashed var(--amber);
+  border-radius: 6px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  max-width: 200px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--amber);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+.shelf-book-add:hover {
+  background: rgba(232,160,32,0.1);
+  transform: translateY(-2px);
+}
+
+/* ── MODAL ── */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(26,20,16,0.85);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.open { display: flex; }
+
+.modal {
+  background: var(--paper);
+  border-radius: 20px;
+  padding: 40px;
+  max-width: 560px;
+  width: 100%;
+  position: relative;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.4);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-close {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  font-size: 1.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #a09080;
+  line-height: 1;
+}
+
+.modal-title {
+  font-family: 'Fraunces', serif;
+  font-size: 1.6rem;
+  font-weight: 900;
+  margin-bottom: 6px;
+  color: var(--ink);
+}
+
+.modal-sub {
+  font-size: 0.82rem;
+  color: #a09080;
+  margin-bottom: 28px;
+  line-height: 1.5;
+}
+
+.modal label {
+  display: block;
+  font-size: 0.72rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #7a6a5a;
+  margin-bottom: 8px;
+}
+
+.modal input, .modal textarea {
+  width: 100%;
+  border: 2px solid var(--cream);
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.95rem;
+  background: #fff;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.2s;
+  margin-bottom: 20px;
+}
+.modal input:focus, .modal textarea:focus { border-color: var(--amber); }
+.modal textarea { height: 90px; resize: vertical; }
+
+.modal-btn {
+  background: var(--ink);
+  color: var(--amber);
+  border: none;
+  border-radius: 10px;
+  padding: 14px 28px;
+  font-family: 'Fraunces', serif;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+  transition: all 0.2s;
+  letter-spacing: 0.02em;
+}
+.modal-btn:hover:not(:disabled) { background: #2d2018; transform: translateY(-1px); }
+.modal-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.modal-status {
+  margin-top: 16px;
+  font-size: 0.85rem;
+  color: var(--teal);
+  text-align: center;
+  min-height: 24px;
+  line-height: 1.4;
+}
+.modal-status.error { color: var(--rust); }
+
+/* ── API KEY INPUT ── */
+.api-key-section {
+  background: var(--cream);
+  border-radius: 12px;
+  padding: 18px;
+  margin-bottom: 24px;
+}
+.api-key-section summary {
+  cursor: pointer;
+  font-size: 0.8rem;
+  color: #7a6a5a;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+.api-key-section input {
+  margin-top: 12px;
+  margin-bottom: 0;
+}
+
+/* ── DYNAMIC INDEX ── */
+#dynamic-index {
+  background: var(--ink);
+  border-radius: 16px;
+  padding: 32px;
+  color: var(--paper);
+  margin-bottom: 0;
+}
+
+/* ── DELETE BOOK BTN ── */
+.delete-book-btn {
+  background: none;
+  border: 1px solid rgba(196,64,26,0.3);
+  color: var(--rust);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.72rem;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  margin-top: 12px;
+  transition: all 0.2s;
+}
+.delete-book-btn:hover { background: var(--rust); color: white; border-color: var(--rust); }
+
+/* ── GENERATING PROGRESS ── */
+.generating-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(26,20,16,0.7);
+  z-index: 2000;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 16px;
+}
+.generating-overlay.open { display: flex; }
+.generating-text {
+  font-family: 'Fraunces', serif;
+  font-size: 1.4rem;
+  color: var(--amber);
+  font-weight: 700;
+}
+.generating-sub {
+  font-size: 0.85rem;
+  color: #c8b8a0;
+}
+.spinner {
+  width: 48px; height: 48px;
+  border: 4px solid rgba(232,160,32,0.2);
+  border-top-color: var(--amber);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">📚 Book Brain</div>
+  <div class="logo-sub">Smart Reading Notes for Real Life</div>
+</header>
+
+<div class="container">
+
+  <!-- SHELF NAV -->
+  <div class="shelf-label">My Library</div>
+  <div class="shelf">
+    <div class="shelf-book active" onclick="showBook('people-skills')">
+      <div class="b-title">People Skills for Analytical Thinkers</div>
+      <div class="b-keyword">🧠 Read people like code</div>
+    </div>
+    <div class="shelf-book" onclick="showBook('big-trust')">
+      <div class="b-title">Big Trust</div>
+      <div class="b-keyword">🔑 Rewire self-doubt from the inside out</div>
+    </div>
+    <div class="shelf-book" onclick="showBook('mattering')">
+      <div class="b-title">Mattering</div>
+      <div class="b-keyword">🫂 The need beneath every human need</div>
+    </div>
+    <div class="shelf-book" onclick="showBook('datastory')">
+      <div class="b-title">DataStory</div>
+      <div class="b-keyword">📊 Turn numbers into stories that move people</div>
+    </div>
+    <div class="shelf-book" onclick="showBook('next-conversation')">
+      <div class="b-title">The Next Conversation</div>
+      <div class="b-keyword">🗣️ Stop winning arguments, start unravelling them</div>
+    </div>
+    <button class="shelf-book-add" onclick="openAddModal()">
+      <span style="font-size:1.2rem">＋</span> Add a book
+    </button>
+  </div>
+  <!-- ═══ BOOK 1 ═══ -->
+  <div class="book-card visible" id="people-skills">
+
+    <div class="book-header">
+      <div>
+        <div class="book-title">People Skills<br>for Analytical Thinkers</div>
+        <div class="book-author">by Gilbert Eijkelenboom</div>
+      </div>
+      <div class="one-liner">Read people<br>like code — then<br>run better programs</div>
+    </div>
+
+    <div class="big-idea">
+      <div class="big-idea-label">⚡ The Big Idea (ELI10)</div>
+      <p>Imagine your brain is a computer. Most analytical people are <em>great</em> at running programs — but terrible at connecting to other computers. This book is your <strong>WiFi upgrade</strong>. It teaches you that every person has a hidden <span class="kw">need</span> engine running inside them, and once you learn to see that engine, you can talk to anyone — and actually get things done together.</p>
+    </div>
+
+    <!-- INSIGHTS -->
+    <div class="section-title">
+      <span class="icon" style="background:#e8f5f3;">🔍</span>
+      Core Insights — Click to Expand
+    </div>
+    <div class="insights">
+
+      <div class="insight" onclick="toggleInsight(this)">
+        <span class="insight-toggle">+</span>
+        <div class="insight-num">Insight 01</div>
+        <div class="insight-title">The 3-Step Influence Loop: Aware → Interact → Influence</div>
+        <div class="insight-body">
+          Think of influence like a video game quest with 3 levels.<br><br>
+          <strong>Level 1 — Self-Aware:</strong> Before talking, ask yourself: "What do <em>I</em> actually want here? What am I feeling?" You can't navigate if you don't know where <em>you</em> are on the map.<br><br>
+          <strong>Level 2 — Interact:</strong> Treat the other person like a puzzle, not an obstacle. Ask curious questions. See them as an <span class="kw">innocent child</span> — someone doing their best with what they know.<br><br>
+          <strong>Level 3 — Influence:</strong> Now that you understand both sides, you can speak clearly — sharing your need while respecting theirs. This isn't manipulation; it's translation.
+        </div>
+      </div>
+
+      <div class="insight" onclick="toggleInsight(this)">
+        <span class="insight-toggle">+</span>
+        <div class="insight-num">Insight 02</div>
+        <div class="insight-title">The Rider & The Elephant — You Have Two Brains</div>
+        <div class="insight-body">
+          Picture a tiny logical rider on top of a huge emotional elephant. The rider is your <span class="kw">rational mind</span> — it plans and analyses. The elephant is your <span class="kw">emotional gut</span> — it <em>feels</em> things first.<br><br>
+          Most analytical people try to control the elephant with logic. That never works — you can't out-argue a 3-ton animal.<br><br>
+          The secret? <strong>Listen to the elephant too.</strong> If something feels uncomfortable in your body during a conversation, that's information — not a malfunction. It means something important is happening.
+        </div>
+      </div>
+
+      <div class="insight" onclick="toggleInsight(this)">
+        <span class="insight-toggle">+</span>
+        <div class="insight-num">Insight 03</div>
+        <div class="insight-title">Everyone Has a Hidden Operating System: Beliefs → Needs</div>
+        <div class="insight-body">
+          Every person behaves a certain way because they <em>believe</em> that behavior will meet a <span class="kw">need</span>. Like a computer program: <code>IF I do X → THEN my need gets met</code>.<br><br>
+          Example: Your colleague constantly sends update emails (behavior). They believe it = being taken seriously (belief). Their real need = <span class="kw">esteem</span>.<br><br>
+          Once you decode this pattern, you stop getting annoyed and start getting curious. What program is this person running?
+        </div>
+      </div>
+
+      <div class="insight" onclick="toggleInsight(this)">
+        <span class="insight-toggle">+</span>
+        <div class="insight-num">Insight 04</div>
+        <div class="insight-title">Two Dangerous Mind Tricks: Asymmetric Insight & False Consensus</div>
+        <div class="insight-body">
+          Your brain tells you two massive lies about other people:<br><br>
+          <strong>Lie 1 — <span class="kw">Illusion of Asymmetric Insight</span>:</strong> "I understand them better than they understand me." (You don't. Nobody does.)<br><br>
+          <strong>Lie 2 — <span class="kw">False Consensus Effect</span>:</strong> "Everyone thinks like me." (They really, really don't.)<br><br>
+          The fix is deliciously simple: ask questions and <em>check</em> your assumptions before acting on them. Say: <em>"For you, it's important that ___. Is that right?"</em>
+        </div>
+      </div>
+
+      <div class="insight" onclick="toggleInsight(this)">
+        <span class="insight-toggle">+</span>
+        <div class="insight-num">Insight 05</div>
+        <div class="insight-title">Convo Seeds: Share Proactively, Ask Casually</div>
+        <div class="insight-body">
+          Analytical people wait to be asked. Big mistake.<br><br>
+          Instead, plant <span class="kw">convo seeds</span> — small, proactive shares that invite others in. Before a meeting: send a quick "here's what I'm thinking" note. After a chat: summarize what you heard.<br><br>
+          And to understand others: ask casually, not like an interrogation. Try: <em>"What do you find important in our collaboration?"</em> — a question so easy it feels like small talk but reveals everything.
+        </div>
+      </div>
+
+      <div class="insight" onclick="toggleInsight(this)">
+        <span class="insight-toggle">+</span>
+        <div class="insight-num">Insight 06</div>
+        <div class="insight-title">The Communication Protocol — 4 Questions That Fix Everything</div>
+        <div class="insight-body">
+          Like setting up a network connection, start every working relationship by running this 4-step protocol:<br><br>
+          1. <strong>What info do you need from me?</strong><br>
+          2. <strong>How do you want to hear from me?</strong> (email, Slack, in person?)<br>
+          3. <strong>When and how often?</strong><br>
+          4. <strong>Who else should know?</strong><br><br>
+          This prevents 80% of communication problems before they happen. Run this at the start of any project or relationship.
+        </div>
+      </div>
+
+    </div>
+
+    <!-- NEEDS PYRAMID -->
+    <div class="section-title">
+      <span class="icon" style="background:#f3f0ff;">🏔️</span>
+      The Hidden Needs Pyramid — What People Really Want
+    </div>
+    <div class="pyramid">
+      <p style="font-size:0.82rem; color:#a09080; margin-bottom:16px;">Click each level to see what people secretly want</p>
+      <div class="pyramid-level" onclick="togglePyramid(this)">🌟 Self-Actualization</div>
+      <div class="pyramid-detail">Becoming the best version of yourself. People with this need want growth, mastery, and meaning — not just a paycheck.</div>
+      <div class="pyramid-level" onclick="togglePyramid(this)">⭐ Esteem</div>
+      <div class="pyramid-detail">Being recognized, taken seriously, mattering. They want their contribution noticed — not just the result, but THEM.</div>
+      <div class="pyramid-level" onclick="togglePyramid(this)">🤝 Belonging</div>
+      <div class="pyramid-detail">Feeling connected, liked, part of a group. They want someone to notice them, know their name, include them.</div>
+      <div class="pyramid-level" onclick="togglePyramid(this)">🍕 Safety & Basics (Foundation)</div>
+      <div class="pyramid-detail">Food, shelter, predictability, stability. If someone seems overly worried — check if their foundations feel shaky.</div>
+    </div>
+
+    <!-- LATERAL LEAPS -->
+    <div class="section-title">
+      <span class="icon" style="background:#fdf0e0;">🚀</span>
+      Lateral Leaps — Surprising Fields Where This Changes Everything
+    </div>
+    <div class="lateral">
+
+      <div class="lateral-card">
+        <div class="lateral-emoji">💻</div>
+        <div>
+          <div class="lateral-field">Software Engineering</div>
+          <div class="lateral-title">Code Reviews Are a Needs Negotiation</div>
+          <div class="lateral-body">When a teammate rejects your pull request harshly, they're not attacking your code — they're often running an <span class="kw">esteem</span> program: "I need to be seen as the expert." Understanding this, you can frame your next PR as a <em>collaboration</em>, not a submission. Ask their opinion first. Their <span class="kw">belief</span>: involvement = recognition. Use it.</div>
+        </div>
+      </div>
+
+      <div class="lateral-card">
+        <div class="lateral-emoji">🎮</div>
+        <div>
+          <div class="lateral-field">Game Design</div>
+          <div class="lateral-title">Player Motivation = The Same Needs Pyramid</div>
+          <div class="lateral-body">The best games hook different players differently. Minecraft → <span class="kw">self-actualization</span> (build anything). Multiplayer → <span class="kw">belonging</span>. Leaderboards → <span class="kw">esteem</span>. Understanding <em>why</em> someone plays tells you what they need in real life too. You can design conversations the same way — give people the "win" that matches their hidden need.</div>
+        </div>
+      </div>
+
+      <div class="lateral-card">
+        <div class="lateral-emoji">🧬</div>
+        <div>
+          <div class="lateral-field">Biology / Animal Behavior</div>
+          <div class="lateral-title">The Innocent Child = Animal in Distress</div>
+          <div class="lateral-body">Vets don't get angry at a biting dog — they ask "what's this animal afraid of?" The book's <span class="kw">innocent child</span> frame is the same thing applied to humans. When someone is rude or defensive, they're not evil — they're scared, threatened, or unmet in a need. Seeing humans as "animals with unmet needs" removes judgment and opens curiosity.</div>
+        </div>
+      </div>
+
+      <div class="lateral-card">
+        <div class="lateral-emoji">🏢</div>
+        <div>
+          <div class="lateral-field">Product Management</div>
+          <div class="lateral-title">User Research Is Just the 4-Question Protocol</div>
+          <div class="lateral-body">The best PMs don't build features — they decode <span class="kw">beliefs</span> and <span class="kw">needs</span>. "What job is this user hiring my product to do?" is the same as "What behavior → belief → need chain is running inside them?" The <span class="kw">communication protocol</span> (what, how, when, who) maps perfectly onto a product spec: requirements, format, cadence, stakeholders.</div>
+        </div>
+      </div>
+
+      <div class="lateral-card">
+        <div class="lateral-emoji">🎭</div>
+        <div>
+          <div class="lateral-field">Theatre & Improv</div>
+          <div class="lateral-title">"Yes, And..." Is Checking Assumptions in Real Time</div>
+          <div class="lateral-body">Improv actors never correct their scene partner — they build on what they said, even if it's surprising. This is the <span class="kw">false consensus</span> antidote in action: assume nothing, accept everything, then redirect. Next time a colleague surprises you, try improv logic: "Yes, and what would that look like if we took your idea further?"</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- QUICK APPLY -->
+    <div class="section-title">
+      <span class="icon" style="background:#e8f5f3;">⚡</span>
+      Try This Monday Morning
+    </div>
+    <div class="apply-grid">
+      <div class="apply-card">
+        <div class="apply-step">Action 01</div>
+        <div class="apply-action">Run the 4-Question Protocol</div>
+        <div class="apply-body">Pick one person you work with. Ask them the 4 communication questions. Watch the relationship change within a week.</div>
+      </div>
+      <div class="apply-card">
+        <div class="apply-step">Action 02</div>
+        <div class="apply-action">Spot the Hidden Need</div>
+        <div class="apply-body">Next time someone annoys you, ask: "What need are they trying to meet?" Don't answer — just notice. Curiosity replaces frustration.</div>
+      </div>
+      <div class="apply-card">
+        <div class="apply-step">Action 03</div>
+        <div class="apply-action">Plant a Convo Seed</div>
+        <div class="apply-body">Before your next meeting, send one short message sharing what you're thinking. Don't wait to be asked. Just one sentence.</div>
+      </div>
+      <div class="apply-card">
+        <div class="apply-step">Action 04</div>
+        <div class="apply-action">Check One Assumption</div>
+        <div class="apply-body">Say out loud: "For you, it's important that ___. Is that right?" Then stop talking. Let them answer. This one sentence builds more trust than a month of meetings.</div>
+      </div>
+    </div>
+
+  </div><!-- end book card -->
+
+  <!-- ═══ BOOK 2: BIG TRUST ═══ -->
+  <div class="book-card" id="big-trust">
+
+    <div class="book-header">
+      <div>
+        <div class="book-title">Big Trust</div>
+        <div class="book-author">by Shadé Zahrai &amp; Fayçal Sekkouah</div>
+      </div>
+      <div class="one-liner">You can't outperform self-doubt.<br>But you can<br>rewire it.</div>
+    </div>
+
+    <div class="big-idea">
+      <div class="big-idea-label">⚡ The Big Idea (ELI10)</div>
+      <p>Imagine self-doubt is like a backseat driver in your brain — always telling you to slow down, take the wrong turn, or just stop the car entirely. This book doesn't try to kick that driver out (you can't). Instead, it teaches you to take back the wheel. You do that by building <strong>Big Trust</strong> — a deep belief in yourself — using 4 upgrades to your brain's software called the <span class="kw">Four A's</span>. Once you know <em>which</em> upgrade you're missing, you can fix it. And when you fix it, everything changes.</p>
+    </div>
+
+    <!-- THE DOUBT PROFILE DIAGNOSTIC -->
+    <div class="section-title">
+      <span class="icon" style="background:#f3f0ff;">🔬</span>
+      Your Doubt Profile — Which A Is Your Weak Spot?
+    </div>
+    <div style="background:#fff; border-radius:16px; padding:28px; margin-bottom:36px; box-shadow: 0 2px 12px rgba(0,0,0,0.05);">
+      <p style="font-size:0.85rem; color:#5a4a38; margin-bottom:20px; line-height:1.6;">The book opens with a self-diagnostic — 12 questions that reveal your personal <span class="kw">Doubt Profile</span>. Most people are low in 1–2 of the four areas. Click each to see what it means for you.</p>
+      <div style="display:grid; gap:14px;">
+
+        <div class="insight" onclick="toggleInsight(this)" style="border-left-color: var(--rust);">
+          <span class="insight-toggle">+</span>
+          <div class="insight-num">A #1 — Am I enough as I am?</div>
+          <div class="insight-title">Acceptance — Self-Worth</div>
+          <div class="insight-body">
+            <strong>Low Acceptance looks like:</strong> You constantly need to prove yourself. You take feedback personally — like it's a verdict on your whole identity, not just your work. You chase approval like oxygen. You compare your insides to other people's outsides on social media.<br><br>
+            <strong>The fix:</strong> Your labels are lying to you. When someone told you "you're too much" or "you're not smart enough" — you were too young to question it. Those labels became your self-image. But labels are just stories. <span class="kw">Reframe</span> them:<br>
+            "I'm indecisive" → "I'm thoughtful and deliberate"<br>
+            "I'm too much" → "I'm passionate and deeply invested"<br><br>
+            Every reframe literally weakens old neural pathways and builds new ones. This is neuroscience, not positive thinking.
+          </div>
+        </div>
+
+        <div class="insight" onclick="toggleInsight(this)" style="border-left-color: var(--amber);">
+          <span class="insight-toggle">+</span>
+          <div class="insight-num">A #2 — Do I have what it takes?</div>
+          <div class="insight-title">Agency — Self-Efficacy</div>
+          <div class="insight-body">
+            <strong>Low Agency looks like:</strong> Waiting to feel "ready" — which never comes. Comparing your skills to others constantly. Feeling like an imposter even when you clearly know things. Paralysis before new challenges.<br><br>
+            <strong>The key insight:</strong> The <span class="kw">Dunning-Kruger Effect</span> works both ways. Beginners overestimate their skill. But <em>experts underestimate theirs</em> — because the more you know, the more you see what you don't know. Feeling like an imposter is often a sign you're actually very good.<br><br>
+            <strong>The fix:</strong> Build an <span class="kw">evidence file</span> — a running list of things you've pulled off, figured out, survived. When doubt hits, you open the file. Your brain can't argue with evidence.
+          </div>
+        </div>
+
+        <div class="insight" onclick="toggleInsight(this)" style="border-left-color: var(--teal);">
+          <span class="insight-toggle">+</span>
+          <div class="insight-num">A #3 — Do I have power over my own life?</div>
+          <div class="insight-title">Autonomy — Locus of Control</div>
+          <div class="insight-body">
+            <strong>Low Autonomy looks like:</strong> Feeling like life just <em>happens to you</em>. Waiting for permission to act. Blaming external circumstances. Saying "I had no choice" a lot. Feeling trapped even when doors are open.<br><br>
+            <strong>Internal vs External Locus of Control:</strong> People with an <span class="kw">internal locus</span> believe their choices shape their outcomes. People with an external locus believe luck, other people, and the system decide everything. Research shows internal locus = higher performance, wellbeing, and earnings.<br><br>
+            <strong>The fix:</strong> In any situation, ask: "What is the one thing within my control right now?" Then do just that thing. It's not about controlling everything — it's about never forgetting what you <em>can</em> control.
+          </div>
+        </div>
+
+        <div class="insight" onclick="toggleInsight(this)" style="border-left-color: var(--lavender);">
+          <span class="insight-toggle">+</span>
+          <div class="insight-num">A #4 — Can I handle what I feel?</div>
+          <div class="insight-title">Adaptability — Emotional Stability</div>
+          <div class="insight-body">
+            <strong>Low Adaptability looks like:</strong> Spiral thinking when things go wrong. Catastrophizing small setbacks. Feeling overwhelmed quickly. Emotions shutting down your ability to think clearly.<br><br>
+            <strong>The <span class="kw">Red Alert</span> system:</strong> Your nervous system has a threat detector. When it fires, blood flow goes to your survival brain — and away from your thinking brain. That's why you go blank in high-stakes moments. It's not stupidity. It's biology.<br><br>
+            <strong>The fix:</strong> You can train your <span class="kw">emotional regulation</span> like a muscle. Name the emotion out loud — "I'm feeling anxious" — and your prefrontal cortex re-engages. Then ask: "Is this thought a fact or a story?" Separating those two is the most powerful thing you can do mid-spiral.
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- CORE INSIGHTS -->
+    <div class="section-title">
+      <span class="icon" style="background:#e8f5f3;">🔍</span>
+      Core Insights — Click to Expand
+    </div>
+    <div class="insights">
+
+      <div class="insight" onclick="toggleInsight(this)">
+        <span class="insight-toggle">+</span>
+        <div class="insight-num">Insight 01</div>
+        <div class="insight-title">You Never Rise Above Your Opinion of Yourself</div>
+        <div class="insight-body">
+          A Dartmouth study in the 1970s had participants walk into conversations believing they had a visible facial scar — but the scar had been secretly removed before they entered the room. They walked in perfectly normal-looking. But because they <em>believed</em> they had the scar, they perceived people treating them badly — less friendly, more distant, uncomfortable.<br><br>
+          This is your <span class="kw">self-image</span> at work. You don't respond to the world as it is. You respond to the world your brain expects to see based on how you see yourself. Invisible scars change everything — how you interpret a colleague's silence, how you read a lack of reply, whether you speak up in a meeting.<br><br>
+          The question to sit with: <em>What invisible scars am I carrying into every room?</em>
+        </div>
+      </div>
+
+      <div class="insight" onclick="toggleInsight(this)">
+        <span class="insight-toggle">+</span>
+        <div class="insight-num">Insight 02</div>
+        <div class="insight-title">Self-Doubt Is a Backseat Driver, Not the Enemy</div>
+        <div class="insight-body">
+          The book's reframe that stuck with me: self-doubt is not the villain. It's a misguided protector. It starts as a useful alert system — "hey, this situation is risky" — but when it runs unchecked, it becomes the voice that narrates everything: every decision, every interaction, every silence after you speak.<br><br>
+          The goal is not to destroy it. You can't. The goal is to stop letting it <span class="kw">drive</span>. You sit it in the back seat, acknowledge it's there, and you take the wheel.<br><br>
+          Why this matters: people who try to suppress self-doubt actually amplify it. People who learn to work <em>with</em> it — and move through it anyway — build Big Trust.
+        </div>
+      </div>
+
+      <div class="insight" onclick="toggleInsight(this)">
+        <span class="insight-toggle">+</span>
+        <div class="insight-num">Insight 03</div>
+        <div class="insight-title">Confidence Is Not the Absence of Doubt</div>
+        <div class="insight-body">
+          The biggest misconception this book destroys: that confident people don't feel self-doubt. They do. The most resilient, high-performing people aren't doubt-free — they've learned to <em>move through it</em>.<br><br>
+          The difference is their <span class="kw">Doubt Profile</span>. They have strong enough A's — Acceptance, Agency, Autonomy, Adaptability — that doubt doesn't stop them. It might slow them down briefly. It doesn't park the car.<br><br>
+          This is the reframe the whole book rests on: confidence is not a feeling you wait for. It's a habit you build by acting before you feel ready.
+        </div>
+      </div>
+
+      <div class="insight" onclick="toggleInsight(this)">
+        <span class="insight-toggle">+</span>
+        <div class="insight-num">Insight 04</div>
+        <div class="insight-title">Your Brain Lies — The Inner Deceivers</div>
+        <div class="insight-body">
+          The book calls out specific mental traps that fuel self-doubt. The ones I found most useful:<br><br>
+          <strong><span class="kw">Imposter Phenomenon</span>:</strong> That creeping feeling that you don't deserve your success and will be "found out." Almost every high achiever has this. Almost none of them actually are imposters.<br><br>
+          <strong><span class="kw">Perfectionism</span>:</strong> Disguised as high standards. But real perfectionism is fear — fear that anything less than perfect proves you're not enough. It's an Acceptance problem wearing an Agency costume.<br><br>
+          <strong><span class="kw">People-pleasing</span>:</strong> Not about being nice. It's about outsourcing your sense of worth to other people's reactions. Every "yes" that should be a "no" is a withdrawal from your self-trust account.<br><br>
+          <strong>Overthinking:</strong> The brain's way of creating the illusion of control. It feels productive. It isn't.
+        </div>
+      </div>
+
+      <div class="insight" onclick="toggleInsight(this)">
+        <span class="insight-toggle">+</span>
+        <div class="insight-num">Insight 05</div>
+        <div class="insight-title">Personality Is Not Fixed — Neuroplasticity Is Your Edge</div>
+        <div class="insight-body">
+          Old idea: personality is fixed by your 30s. Current neuroscience: wrong.<br><br>
+          Your brain is <span class="kw">neuroplastic</span> — it reshapes based on what you repeatedly do and think. The four A's are not personality types you're stuck with. They are habits. And habits change with intentional, targeted practice.<br><br>
+          The key word is <em>intentional</em>. Vague wishes don't rewire brains. Specific, repeated new behaviors do. This is why the book gives concrete practices for each A — not general advice, but targeted repetitions that build new neural pathways over time.
+        </div>
+      </div>
+
+      <div class="insight" onclick="toggleInsight(this)">
+        <span class="insight-toggle">+</span>
+        <div class="insight-num">Insight 06</div>
+        <div class="insight-title">Use Stronger A's to Prop Up Weaker Ones</div>
+        <div class="insight-body">
+          This is the most tactical insight in the book. Most people score high in some A's and low in others. That's not a problem — it's a strategy.<br><br>
+          Example: If your <span class="kw">Agency</span> (skill confidence) is high but your <span class="kw">Acceptance</span> (self-worth) is low — use your strong "I can do this" voice to override the "but am I worthy of this?" voice. Lead with capability, not worth.<br><br>
+          If your <span class="kw">Adaptability</span> is high — you stay calm under pressure — use that stability to anchor you when Autonomy takes a hit and you feel out of control. Your strengths are the scaffolding. Build the weak walls while the strong walls hold.
+        </div>
+      </div>
+
+    </div>
+
+    <!-- LATERAL LEAPS -->
+    <div class="section-title">
+      <span class="icon" style="background:#fdf0e0;">🚀</span>
+      Lateral Leaps — Surprising Fields Where This Changes Everything
+    </div>
+    <div class="lateral">
+
+      <div class="lateral-card">
+        <div class="lateral-emoji">🏋️</div>
+        <div>
+          <div class="lateral-field">Sports Psychology</div>
+          <div class="lateral-title">Elite Athletes Have Doubt Profiles Too</div>
+          <div class="lateral-body">Every top athlete experiences performance anxiety. The ones who win aren't fear-free — they have high <span class="kw">Adaptability</span>. They've trained their nervous system to stay regulated under pressure. The same Red Alert → regulate → re-engage sequence that works in a boardroom works in the final set of a Grand Slam. Mental training IS skill training.</div>
+        </div>
+      </div>
+
+      <div class="lateral-card">
+        <div class="lateral-emoji">🎨</div>
+        <div>
+          <div class="lateral-field">Creative Work / Art</div>
+          <div class="lateral-title">Perfectionism Kills More Art Than Lack of Talent</div>
+          <div class="lateral-body">The book's insight on <span class="kw">perfectionism</span> as fear in disguise explains why so many talented people never ship. The canvas stays blank not because they lack skill (Agency is fine) but because they can't handle the idea that the work might be judged and found lacking (Acceptance is low). The fix isn't "lower your standards." It's decouple your worth from the work's reception.</div>
+        </div>
+      </div>
+
+      <div class="lateral-card">
+        <div class="lateral-emoji">🤝</div>
+        <div>
+          <div class="lateral-field">Leadership & Management</div>
+          <div class="lateral-title">Micromanagers Are Low-Autonomy Leaders</div>
+          <div class="lateral-body">A manager who micromanages isn't bad at trusting others — they're bad at trusting <em>themselves</em>. Low <span class="kw">Autonomy</span> (external locus of control) means they feel at the mercy of outcomes, so they grasp for control wherever they can. Understanding this reframes how to coach them: the solution isn't "let go more." It's help them rebuild their internal locus.</div>
+        </div>
+      </div>
+
+      <div class="lateral-card">
+        <div class="lateral-emoji">📱</div>
+        <div>
+          <div class="lateral-field">Social Media & Tech Design</div>
+          <div class="lateral-title">Platforms Are Engineered to Attack Acceptance</div>
+          <div class="lateral-body">Social media is literally designed to trigger your <span class="kw">Acceptance</span> vulnerability. Likes and follower counts are external approval metrics — they exploit the exact psychological wound this book addresses. Knowing your Doubt Profile means knowing which platforms will hurt you most. Someone with low Acceptance should treat Instagram the way a person with a sugar sensitivity treats candy — consume cautiously, not casually.</div>
+        </div>
+      </div>
+
+      <div class="lateral-card">
+        <div class="lateral-emoji">🧪</div>
+        <div>
+          <div class="lateral-field">Science & R&D</div>
+          <div class="lateral-title">Innovation Requires High Agency Tolerance for Failure</div>
+          <div class="lateral-body">James Dyson made 5,126 prototypes before his vacuum worked. Each failure is an <span class="kw">Agency</span> test — "Do I still believe I have what it takes, even when evidence says otherwise?" People who quit after failure aren't quitting the problem. They're quitting because their self-trust account ran dry. Building Agency before starting hard projects is the real preparation.</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- QUICK APPLY -->
+    <div class="section-title">
+      <span class="icon" style="background:#e8f5f3;">⚡</span>
+      Try This This Week
+    </div>
+    <div class="apply-grid">
+      <div class="apply-card">
+        <div class="apply-step">Action 01 — Acceptance</div>
+        <div class="apply-action">Rewrite One Label</div>
+        <div class="apply-body">Write down one thing you call yourself ("I'm bad at X", "I'm too Y"). Then write the reframe. Say the reframe out loud, twice a day, for 7 days. Not affirmation — rewiring.</div>
+      </div>
+      <div class="apply-card">
+        <div class="apply-step">Action 02 — Agency</div>
+        <div class="apply-action">Start the Evidence File</div>
+        <div class="apply-body">Open Notes on your phone. Write 5 things you've done that you didn't think you could at the time. Add one new entry every Friday. This is your doubt antidote.</div>
+      </div>
+      <div class="apply-card">
+        <div class="apply-step">Action 03 — Autonomy</div>
+        <div class="apply-action">Find One Controllable Thing</div>
+        <div class="apply-body">Next time you feel stuck or powerless, ask: "What is the one thing I CAN control right now?" Act on only that. Do not try to control the rest. Just that one thing.</div>
+      </div>
+      <div class="apply-card">
+        <div class="apply-step">Action 04 — Adaptability</div>
+        <div class="apply-action">Name It to Tame It</div>
+        <div class="apply-body">Mid-spiral or before a high-stakes moment, say out loud: "I am feeling ___." Then ask: "Is this a fact or a story?" You will feel your thinking brain turn back on. This works every time.</div>
+      </div>
+    </div>
+
+  </div><!-- end big-trust -->
+
+  <!-- ═══ BOOK 3: MATTERING ═══ -->
+  <div class="book-card" id="mattering">
+
+    <div class="book-header">
+      <div>
+        <div class="book-title">Mattering</div>
+        <div class="book-author">by Jennifer Breheny Wallace</div>
+      </div>
+      <div class="one-liner">To be seen,<br>valued, and needed<br>— that's the whole game.</div>
+    </div>
+
+    <div class="big-idea">
+      <div class="big-idea-label">⚡ The Big Idea (ELI10)</div>
+      <p>Imagine everyone you meet is wearing an invisible sign around their neck that says: <em>"Tell me — do I matter?"</em> Kids, bosses, strangers, parents, colleagues. Every single person. This book says that loneliness, burnout, road rage, anxiety, even violence — they're all symptoms of the same root problem: people who don't feel like they matter. <strong>Mattering</strong> is the feeling of being <span class="kw">valued</span> AND having a chance to <span class="kw">add value</span>. Both halves matter. When that feeling goes missing, everything falls apart. And the wild thing? You can fix it — for yourself AND for others — with surprisingly small acts.</p>
+    </div>
+
+    <!-- THE MATTERING CORE -->
+    <div class="section-title">
+      <span class="icon" style="background:#e8f5f3;">🔬</span>
+      The Mattering Core — 5 Ingredients Everyone Needs
+    </div>
+    <div style="background:#fff; border-radius:16px; padding:28px; margin-bottom:36px; box-shadow: 0 2px 12px rgba(0,0,0,0.05);">
+      <p style="font-size:0.85rem; color:#5a4a38; margin-bottom:20px; line-height:1.6;">Sociologist Morris Rosenberg first identified mattering in the 1980s. Wallace builds on his work with 5 components that, together, form your <span class="kw">mattering core</span>. You need all five — in yourself and in others. Click each to explore.</p>
+      <div style="display:grid; gap:14px;">
+
+        <div class="insight" onclick="toggleInsight(this)" style="border-left-color: var(--teal);">
+          <span class="insight-toggle">+</span>
+          <div class="insight-num">Component 1</div>
+          <div class="insight-title">Recognition — "You see me for WHO I am, not just WHAT I do"</div>
+          <div class="insight-body">
+            Recognition is not the same as praise for results. It's being appreciated for your <em>character</em>, your presence, your quirks — not just your output.<br><br>
+            The clementine story: A bodega shopkeeper in Harlem noticed a regular customer always bought clementines, so he started stocking them specially. That tiny act said: <em>I paid attention. You are more than a transaction to me.</em><br><br>
+            <strong>The cost of missing this:</strong> Employees who feel like interchangeable parts — numbers on a spreadsheet — disengage. Not from laziness. From pain. Recognition is the signal: "You are worth noticing."
+          </div>
+        </div>
+
+        <div class="insight" onclick="toggleInsight(this)" style="border-left-color: var(--amber);">
+          <span class="insight-toggle">+</span>
+          <div class="insight-num">Component 2</div>
+          <div class="insight-title">Reliance — "Someone actually needs me" (but not TOO much)</div>
+          <div class="insight-body">
+            Being relied on is one of the most powerful feelings in the world. It tells us we are not optional. But there's a danger zone: <span class="kw">mattering too much</span>.<br><br>
+            Caregivers, teachers, front-line workers — society relies on them <em>constantly</em>, yet never prioritizes them back. That's the burnout formula: endless output, no replenishment. You matter to everyone except yourself.<br><br>
+            <strong>The fix:</strong> Reliance has to flow both ways. And you need to practice mattering to yourself first — every morning, ask: "What one small need must I fill today so I can show up as my best self?" Not when the to-do list is done. Now.
+          </div>
+        </div>
+
+        <div class="insight" onclick="toggleInsight(this)" style="border-left-color: var(--rust);">
+          <span class="insight-toggle">+</span>
+          <div class="insight-num">Component 3</div>
+          <div class="insight-title">Importance — "I am significant to the people in my life"</div>
+          <div class="insight-body">
+            Importance isn't about being famous or powerful. It's found in small, everyday signals: someone remembers what you mentioned last week, a colleague asks your opinion before making a decision, your friend texts to check in after a hard day.<br><br>
+            When those signals stop — when people stop consulting you, stop noticing you, stop including you — importance drains away. It's quiet. But the damage is enormous.<br><br>
+            <strong>Real example from the book:</strong> A factory in Wisconsin put "story cards" beside machines connecting assembly workers to the end users of their products. Workers who knew their work helped real families felt more important — and performed better.
+          </div>
+        </div>
+
+        <div class="insight" onclick="toggleInsight(this)" style="border-left-color: var(--lavender);">
+          <span class="insight-toggle">+</span>
+          <div class="insight-num">Component 4</div>
+          <div class="insight-title">Ego Extension — "You're invested in me, and I in you"</div>
+          <div class="insight-body">
+            Ego extension (despite the fancy name) just means: someone is genuinely rooting for you. They think about your future. They celebrate your wins even when they don't benefit directly. And you do the same for them.<br><br>
+            This is what separates a <span class="kw">transaction</span> from a <span class="kw">relationship</span>. Your Uber driver gets you there. Your friend stays up thinking about how to help you land the job.<br><br>
+            <strong>The modern crisis:</strong> We've outsourced so much human reliance to apps and services that we've quietly dismantled ego extension. The village still exists — but it's behind a paywall. And no service can replicate the feeling that someone is genuinely invested in YOU.
+          </div>
+        </div>
+
+        <div class="insight" onclick="toggleInsight(this)" style="border-left-color: var(--teal);">
+          <span class="insight-toggle">+</span>
+          <div class="insight-num">Component 5</div>
+          <div class="insight-title">Attunement — "You really GET me"</div>
+          <div class="insight-body">
+            Attunement means someone doesn't just hear your words — they understand what's underneath them. They respond to what you <em>actually</em> mean, not just what you said.<br><br>
+            The train conductor story: An enraged young man on the train was defused — not by force, not by rules — but by a conductor who calmly respected him. He saw the emotion beneath the behaviour and responded to that. The young man visibly softened.<br><br>
+            <strong>Why this is rare:</strong> We live in an autopilot world — too much input, too much demanded of us. We stop paying real attention. Attunement requires slowing down enough to <em>actually listen</em> to what someone is carrying.
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- CORE INSIGHTS -->
+    <div class="section-title">
+      <span class="icon" style="background:#fdf0e0;">🔍</span>
+      Core Insights — Click to Expand
+    </div>
+    <div class="insights">
+
+      <div class="insight" onclick="toggleInsight(this)">
+        <span class="insight-toggle">+</span>
+        <div class="insight-num">Insight 01</div>
+        <div class="insight-title">Loneliness, Burnout, Anxiety — Same Root, Different Symptoms</div>
+        <div class="insight-body">
+          We treat loneliness, burnout, disengagement at work, youth depression, and rage as separate crises. Wallace's core argument: they are all symptoms of the same unmet need — the need to matter.<br><br>
+          Since 2014, US life expectancy has <em>declined</em>. Researchers call the deaths driving this "deaths of despair." In 2023, a survey across 140 countries found nearly 1 in 4 people reporting loneliness. US employee engagement fell to 31% in 2024. These numbers are connected.<br><br>
+          When you see someone disengaged, angry, checked out, or spiralling — before diagnosing them, ask: <em>do they feel like they matter?</em> That question changes the entire response.
+        </div>
+      </div>
+
+      <div class="insight" onclick="toggleInsight(this)">
+        <span class="insight-toggle">+</span>
+        <div class="insight-num">Insight 02</div>
+        <div class="insight-title">Anti-Mattering: The Invisible Force Behind Most Workplace Problems</div>
+        <div class="insight-body">
+          <span class="kw">Anti-mattering</span> is the active belief that you are invisible and inconsequential. At its worst, it drives violence, substance abuse, and self-harm. In everyday life it shows up as disengagement, resentment, and quiet quitting.<br><br>
+          The most common anti-mattering signal at work? Feeling <em>replaceable</em>. Especially now, with AI threatening jobs, that signal is everywhere — and it's devastating morale even among highly competent people.<br><br>
+          What makes anti-mattering so powerful is its <em>cumulative</em> effect. No single slight destroys you. But a thousand small signals that you don't count? That reshapes your identity.
+        </div>
+      </div>
+
+      <div class="insight" onclick="toggleInsight(this)">
+        <span class="insight-toggle">+</span>
+        <div class="insight-num">Insight 03</div>
+        <div class="insight-title">Counterfeit Mattering — We're Chasing the Wrong Things</div>
+        <div class="insight-body">
+          When real mattering is absent, we fill the void with <span class="kw">counterfeit mattering</span>: attention instead of connection, prestige instead of purpose, money instead of meaning, follower counts instead of friendships.<br><br>
+          Counterfeit mattering feels good for a moment — like junk food. But it doesn't actually fill the need. So you chase more. That's why people can be objectively successful — promotions, likes, acclaim — and still feel empty.<br><br>
+          The question to ask yourself: am I chasing things that make me feel <em>seen</em>, or things that make me feel <em>valued</em>? Those are not the same thing. Attention is a counterfeit. Being known is the real currency.
+        </div>
+      </div>
+
+      <div class="insight" onclick="toggleInsight(this)">
+        <span class="insight-toggle">+</span>
+        <div class="insight-num">Insight 04</div>
+        <div class="insight-title">Human Energy Isn't a Bank Account — It's a Muscle</div>
+        <div class="insight-body">
+          Most people think giving = depleting. If I help others, I'll have less left for myself. The book challenges this head-on: human energy doesn't work like a fixed bank account. It works more like a muscle.<br><br>
+          Small acts of contribution — helping a colleague, checking in on a neighbour, doing something useful — actually <em>boost</em> your sense of purpose and agency. That is the energy. You don't spend it by giving. You generate it.<br><br>
+          This is why volunteering, mentoring, and community involvement consistently show up in research as protective against depression and burnout — even when people already feel stretched. Giving back <em>is</em> a form of self-care.
+        </div>
+      </div>
+
+      <div class="insight" onclick="toggleInsight(this)">
+        <span class="insight-toggle">+</span>
+        <div class="insight-num">Insight 05</div>
+        <div class="insight-title">The Mattering Lens — A Diagnostic for Every Struggle</div>
+        <div class="insight-body">
+          Wallace introduces the <span class="kw">mattering lens</span> as a tool: when something in your life feels off — a transition, a conflict, a slump — apply this lens. Ask: which component of mattering has been disrupted?<br><br>
+          A retirement feels devastating not because of lost income but because of lost <span class="kw">reliance</span> — no one needs you the same way. A career plateau stings not because of money but because of lost <span class="kw">importance</span>. A new city feels lonely not because people are bad but because <span class="kw">attunement</span> takes years to build.<br><br>
+          Naming the specific component you're missing is the first step to knowing how to rebuild it. Vague feeling of "something's wrong" becomes actionable when you know <em>which</em> part of mattering is broken.
+        </div>
+      </div>
+
+      <div class="insight" onclick="toggleInsight(this)">
+        <span class="insight-toggle">+</span>
+        <div class="insight-num">Insight 06</div>
+        <div class="insight-title">The Fastest Way to Feel Like You Matter — Make Someone Else Feel It First</div>
+        <div class="insight-body">
+          This is the insight that hit hardest: the fastest way to restore your own sense of mattering is to remind someone else of theirs.<br><br>
+          It sounds backwards. But every time you reinforce someone else's worth — genuinely, specifically — you are reminded that <em>you</em> are needed, valued, and capable of making a difference. Mattering is contagious in both directions.<br><br>
+          The book calls this the <span class="kw">mattering ripple</span>: a barber in Memphis trained in empathetic listening. A woman in England who put "chatty table" signs in cafés — now in over 2,000 locations. A man who delivered cookies to neighbours and built a community support network. None of these cost money. All of them spread.
+        </div>
+      </div>
+
+    </div>
+
+    <!-- LATERAL LEAPS -->
+    <div class="section-title">
+      <span class="icon" style="background:#e8f5f3;">🚀</span>
+      Lateral Leaps — Where This Changes Everything
+    </div>
+    <div class="lateral">
+
+      <div class="lateral-card">
+        <div class="lateral-emoji">🤖</div>
+        <div>
+          <div class="lateral-field">AI & The Future of Work</div>
+          <div class="lateral-title">The Real AI Threat Isn't Unemployment — It's Anti-Mattering</div>
+          <div class="lateral-body">Wallace warns that AI displacement is a <span class="kw">mattering crisis</span>, not just an economic one. When a machine does your job, you don't just lose income — you lose <span class="kw">reliance</span>, <span class="kw">importance</span>, and <span class="kw">recognition</span>. Leaders deploying AI need to actively replace the mattering signals their teams lose — or they'll inherit disengaged, resentful people even if everyone still has a job.</div>
+        </div>
+      </div>
+
+      <div class="lateral-card">
+        <div class="lateral-emoji">🏙️</div>
+        <div>
+          <div class="lateral-field">Urban Design & Architecture</div>
+          <div class="lateral-title">Buildings Can Be Mattering Machines</div>
+          <div class="lateral-body">Wallace visits a pub in South London — The Bedford — that programs toddler dance parties, bridge clubs, and community events. The physical space is a <span class="kw">mattering architect</span>. Great urban design creates accidental encounters, shared purpose, and regular reliance between strangers. The question for any space: does it give people a reason to need each other? If not, it's producing loneliness at scale.</div>
+        </div>
+      </div>
+
+      <div class="lateral-card">
+        <div class="lateral-emoji">🧠</div>
+        <div>
+          <div class="lateral-field">Psychology / People Skills</div>
+          <div class="lateral-title">The Needs Beneath the Need</div>
+          <div class="lateral-body">Connect this back to <em>People Skills for Analytical Thinkers</em>: Maslow's hierarchy (belonging, esteem, self-actualization) is actually a map of <span class="kw">mattering components</span>. Belonging = <span class="kw">reliance + recognition</span>. Esteem = <span class="kw">importance + ego extension</span>. Self-actualization = adding value that goes beyond yourself. The books cross-pollinate: once you know someone's mattering deficit, you know exactly which need to speak to.</div>
+        </div>
+      </div>
+
+      <div class="lateral-card">
+        <div class="lateral-emoji">⚖️</div>
+        <div>
+          <div class="lateral-field">Criminology & Social Justice</div>
+          <div class="lateral-title">Rage and Violence Are Anti-Mattering Gone Extreme</div>
+          <div class="lateral-body">Gordon Flett's research on <span class="kw">anti-mattering</span> shows that when the belief "I am invisible and inconsequential" becomes identity, people sometimes lash out to <em>force</em> the world to notice them. Road rage, online attacks, mass violence — these are desperate bids for significance. Understanding this doesn't excuse the behaviour, but it completely reframes prevention: make people feel they matter <em>before</em> they go looking for dangerous ways to prove it.</div>
+        </div>
+      </div>
+
+      <div class="lateral-card">
+        <div class="lateral-emoji">📱</div>
+        <div>
+          <div class="lateral-field">Product Design & Social Media</div>
+          <div class="lateral-title">Likes Are Counterfeit Mattering at Industrial Scale</div>
+          <div class="lateral-body">Social platforms are engineered to deliver <span class="kw">counterfeit mattering</span> — attention, approval metrics, follower counts — at addictive speed. They mimic recognition and importance without the depth of real <span class="kw">attunement</span> or <span class="kw">ego extension</span>. This is why the more time people spend on social media, the lonelier research shows they feel. The product gives you the hit without the nutrition. Design that prioritizes real connection over engagement metrics would look radically different.</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- QUICK APPLY -->
+    <div class="section-title">
+      <span class="icon" style="background:#fdf0e0;">⚡</span>
+      Try This This Week
+    </div>
+    <div class="apply-grid">
+      <div class="apply-card">
+        <div class="apply-step">Action 01 — Recognition</div>
+        <div class="apply-action">See Someone Specifically</div>
+        <div class="apply-body">Pick one person today — colleague, family member, stranger. Notice one specific thing about them and mention it. Not "good job." Something real: "I noticed how you handled that — that took patience."</div>
+      </div>
+      <div class="apply-card">
+        <div class="apply-step">Action 02 — Reliance</div>
+        <div class="apply-action">Ask for Help Once</div>
+        <div class="apply-body">We live in a hyper-independent culture that treats asking for help as weakness. Ask someone for help with something small this week. You're not burdening them — you're giving them a chance to matter.</div>
+      </div>
+      <div class="apply-card">
+        <div class="apply-step">Action 03 — Morning Check-In</div>
+        <div class="apply-action">One Need Before the World</div>
+        <div class="apply-body">Each morning, ask: "What one small need must I fill today for myself?" Answer it before your phone. Before email. Just one thing — that's how you matter to yourself first.</div>
+      </div>
+      <div class="apply-card">
+        <div class="apply-step">Action 04 — Mattering Lens</div>
+        <div class="apply-action">Diagnose the Real Problem</div>
+        <div class="apply-body">Next time you feel stuck, burnt out, or invisible — run the mattering diagnostic. Ask: am I missing recognition, reliance, importance, ego extension, or attunement? Name it. Then you know what to rebuild.</div>
+      </div>
+    </div>
+
+  </div><!-- end mattering -->
+
+  <!-- ═══ BOOK 4: DATASTORY ═══ -->
+  <div class="book-card" id="datastory">
+
+    <div class="book-header">
+      <div>
+        <div class="book-title">DataStory</div>
+        <div class="book-author">by Nancy Duarte</div>
+      </div>
+      <div class="one-liner">Data tells you<br><em>what</em> happened.<br>Story tells you<br><em>why it matters.</em></div>
+    </div>
+
+    <div class="big-idea">
+      <div class="big-idea-label">⚡ The Big Idea (ELI10)</div>
+      <p>Imagine you have the world's most important secret hidden inside a pile of numbers. Nobody cares about the pile. But wrap those numbers in a <strong>story</strong> — a beginning, a messy middle, and a clear ending that says "here's what we should do" — and suddenly everyone's paying attention, nodding, and ready to act. This book teaches you that <span class="kw">data without story is trivia</span>. But <span class="kw">story without data is fiction</span>. You need both — and there's a formula for combining them that the world's best communicators already use.</p>
+    </div>
+
+    <!-- THE FRAMEWORK MAP -->
+    <div class="section-title">
+      <span class="icon" style="background:#e8f5f3;">🗺️</span>
+      The DataStory Framework — 4 Sections, One System
+    </div>
+    <div style="background:#fff; border-radius:16px; padding:28px; margin-bottom:36px; box-shadow: 0 2px 12px rgba(0,0,0,0.05);">
+      <p style="font-size:0.85rem; color:#5a4a38; margin-bottom:20px; line-height:1.6;">The book builds one complete workflow across 4 sections. Each section answers a different question. Together they take you from raw data to a decision that actually gets made.</p>
+      <div style="display:grid; gap:10px;">
+        <div style="background:linear-gradient(135deg,#e8f5f3,#d4ece8); border-radius:10px; padding:16px 20px; display:grid; grid-template-columns:80px 1fr; gap:12px; align-items:center;">
+          <div style="font-weight:800; font-size:0.75rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--teal);">Section 1</div>
+          <div><strong>Communicate Data to Others</strong> — Who is your audience and what do they actually need to decide?</div>
+        </div>
+        <div style="background:linear-gradient(135deg,#fdf3e0,#fae8c0); border-radius:10px; padding:16px 20px; display:grid; grid-template-columns:80px 1fr; gap:12px; align-items:center;">
+          <div style="font-weight:800; font-size:0.75rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--amber);">Section 2</div>
+          <div><strong>Bring Clarity Through Story Structure</strong> — Build your <span class="kw">DataPOV</span>, your 3-act executive summary, and your <span class="kw">Recommendation Tree</span></div>
+        </div>
+        <div style="background:linear-gradient(135deg,#fdf0ec,#f8ddd5); border-radius:10px; padding:16px 20px; display:grid; grid-template-columns:80px 1fr; gap:12px; align-items:center;">
+          <div style="font-weight:800; font-size:0.75rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--rust);">Section 3</div>
+          <div><strong>Make Clear Charts and Slides</strong> — Choose the right chart, annotate with insight sentences, build a skimmable <span class="kw">SlideDoc</span></div>
+        </div>
+        <div style="background:linear-gradient(135deg,#f3f0ff,#e8e0f5); border-radius:10px; padding:16px 20px; display:grid; grid-template-columns:80px 1fr; gap:12px; align-items:center;">
+          <div style="font-weight:800; font-size:0.75rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--lavender);">Section 4</div>
+          <div><strong>Make Data Stick</strong> — Humanize numbers, make them relatable, use magnitude and scale to make the abstract feel real</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CORE INSIGHTS -->
+    <div class="section-title">
+      <span class="icon" style="background:#fdf0e0;">🔍</span>
+      Core Insights — Click to Expand
+    </div>
+    <div class="insights">
+
+      <div class="insight" onclick="toggleInsight(this)">
+        <span class="insight-toggle">+</span>
+        <div class="insight-num">Insight 01</div>
+        <div class="insight-title">Data Tells What Happened. Story Tells What To Do About It.</div>
+        <div class="insight-body">
+          Most people who work with data are brilliant at the <em>analysis</em> half — finding the truth inside the numbers. But analysis without a story just creates more questions and paralysis for the decision-maker.<br><br>
+          Duarte's core distinction: <strong>Exploring data</strong> (your job) is fundamentally different from <strong>Explaining data</strong> (what gets action). They require opposite mindsets. Exploration asks "what's here?" Explanation asks "what does my audience need to decide?"<br><br>
+          The bridge between them is the <span class="kw">DataStory</span>: a structured narrative that takes your analytical truth and packages it into something a human brain can act on. Raw data is not a communication. A DataStory is.
+        </div>
+      </div>
+
+      <div class="insight" onclick="toggleInsight(this)">
+        <span class="insight-toggle">+</span>
+        <div class="insight-num">Insight 02</div>
+        <div class="insight-title">The DataPOV — One Clear Sentence That Drives Everything</div>
+        <div class="insight-body">
+          Before building any presentation, you must nail your <span class="kw">DataPOV</span> — a single, specific, action-oriented point of view that comes directly from your data.<br><br>
+          A DataPOV is not "sales are down." That's an observation. It's not "we should do better." That's vague. A DataPOV is: <em>"We need to [verb] [what] by [when] in order to [outcome] — because the data shows [specific finding]."</em><br><br>
+          The verb matters enormously. Duarte breaks verbs into <strong>performance verbs</strong> (accelerate, grow, fix, improve — things you want to continue or enhance) and <strong>process verbs</strong> (redesign, stop, replace, eliminate — things that need transformation). Choosing the right verb is choosing the right action before you've built a single slide.
+        </div>
+      </div>
+
+      <div class="insight" onclick="toggleInsight(this)">
+        <span class="insight-toggle">+</span>
+        <div class="insight-num">Insight 03</div>
+        <div class="insight-title">The 3-Act Data Executive Summary — SCR</div>
+        <div class="insight-body">
+          Every DataStory follows the same 3-act structure that every great story has used for thousands of years — just applied to business data.<br><br>
+          <strong>Act 1 — Situation:</strong> Here's where we are. The current state, established in data. <em>"The average subscription renewal rate across regions is 62%."</em><br><br>
+          <strong>Act 2 — Complication:</strong> But here's the problem or opportunity the data reveals. The messy middle. <em>"But the western region renews at only 23%."</em> This is where tension lives. Think of Frodo carrying the ring through Mordor — the audience needs conflict to stay engaged.<br><br>
+          <strong>Act 3 — Resolution (DataPOV):</strong> Therefore, we need to... The clear action. <em>"Therefore, we need to reactivate the western region sales team with a targeted renewal campaign by Q3."</em><br><br>
+          The magic phrase to always have ready: <em>"Therefore, we need to…"</em> If someone is stuck in problem-mode, drop that phrase and pause. It forces a shift from problem-identifying to problem-solving.
+        </div>
+      </div>
+
+      <div class="insight" onclick="toggleInsight(this)">
+        <span class="insight-toggle">+</span>
+        <div class="insight-num">Insight 04</div>
+        <div class="insight-title">The Recommendation Tree — Structure Behind the Story</div>
+        <div class="insight-body">
+          Once you have your <span class="kw">DataPOV</span>, you build the <span class="kw">Recommendation Tree</span> — a logical framework that holds up your recommendation with branches of evidence, sub-actions, and supporting data.<br><br>
+          Think of it like a court case: your DataPOV is the verdict. The Recommendation Tree is your entire argument — the evidence, the witnesses, the logic chain.<br><br>
+          Each branch answers a skeptic's question: "Prove it." You include your core arguments, the data that supports each argument, the specific actions each argument leads to, and — critically — your assumptions. State them explicitly: <em>"This recommendation holds if [X condition is true]."</em> This disarms objections before they're raised and makes you look like the most credible person in the room.<br><br>
+          The <span class="kw">SlideDoc</span> version of this becomes a dense, readable document — not a presentation — that executives can read alone, annotate, and send to others. One slide = one node of the tree.
+        </div>
+      </div>
+
+      <div class="insight" onclick="toggleInsight(this)">
+        <span class="insight-toggle">+</span>
+        <div class="insight-num">Insight 05</div>
+        <div class="insight-title">Chart Titles Are the Most Wasted Real Estate in Business</div>
+        <div class="insight-body">
+          Most people title their charts with the variable name: "Q3 Revenue by Region." That tells the reader <em>what to look at</em> — but not <em>what it means</em>.<br><br>
+          Duarte's rule: <strong>chart titles should be insight sentences</strong>, not label sentences. Instead of "Q3 Revenue by Region," write: "Western Region Revenue Fell 34% Despite Increased Headcount." Now the reader knows the story before they even look at the chart.<br><br>
+          Then go further with <span class="kw">annotations</span> — written sentences overlaid directly onto the chart at the key data points. These guide the eye and the mind simultaneously. Annotations are the difference between a chart that informs and one that persuades.
+        </div>
+      </div>
+
+      <div class="insight" onclick="toggleInsight(this)">
+        <span class="insight-toggle">+</span>
+        <div class="insight-num">Insight 06</div>
+        <div class="insight-title">Humanize the Number or Lose Your Audience</div>
+        <div class="insight-body">
+          The human brain cannot viscerally feel large numbers. "1 billion dollars" and "2 billion dollars" feel roughly the same to most people. "400,000 deaths" registers less emotionally than a single face with a name. This is a known cognitive failure, not a character flaw.<br><br>
+          Duarte's solution: always translate large numbers into relatable human scale. Convert size to something physical (football fields, city blocks). Convert time to work hours or lifetimes. Convert money to something tangible (what it buys, how long it takes to earn).<br><br>
+          The greatest data communicators in history — think of climate change presentations that showed sea level rising to swallow cities — didn't win with bigger spreadsheets. They won by making the abstract <em>felt</em>. Data that can be felt gets acted on. Data that can only be understood gets filed away.
+        </div>
+      </div>
+
+    </div>
+
+    <!-- EXECUTIVE AUDIENCE NOTE -->
+    <div style="background: linear-gradient(135deg, #1a1410, #2d2018); border-radius:14px; padding:26px 28px; margin-bottom:36px; color:var(--paper);">
+      <div style="font-size:0.7rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--amber); font-weight:700; margin-bottom:10px;">⚡ Key Note on Executives</div>
+      <p style="font-size:0.9rem; line-height:1.7; color:#e0d4c4;">Executives process differently. They hop around, ask questions out of sequence, interrupt, and run on much less time than you planned. Don't fill your entire slot. Leave at least 30% of your time for their questions — that's when the real decision happens. And never walk in with data dumps: they want the resolution first (<span class="kw">DataPOV</span>), then the supporting proof. Start with "Therefore, we need to…" not "Here's all the data we found."</p>
+    </div>
+
+    <!-- LATERAL LEAPS -->
+    <div class="section-title">
+      <span class="icon" style="background:#e8f5f3;">🚀</span>
+      Lateral Leaps — Where This Changes Everything
+    </div>
+    <div class="lateral">
+
+      <div class="lateral-card">
+        <div class="lateral-emoji">⚖️</div>
+        <div>
+          <div class="lateral-field">Law & Courtroom Advocacy</div>
+          <div class="lateral-title">Every Trial Is a DataStory in 3 Acts</div>
+          <div class="lateral-body">The <span class="kw">SCR structure</span> (Situation → Complication → Resolution) is exactly how a closing argument works: here's the context, here's the crime, here's what the jury must do. And the <span class="kw">Recommendation Tree</span> is literally the case brief — a hierarchy of claims, evidence, and assumptions. Great lawyers don't dump evidence; they craft a story with the verdict as the <span class="kw">DataPOV</span> and build backwards.</div>
+        </div>
+      </div>
+
+      <div class="lateral-card">
+        <div class="lateral-emoji">🧬</div>
+        <div>
+          <div class="lateral-field">Science Communication</div>
+          <div class="lateral-title">Why Great Research Gets Ignored — And How to Fix It</div>
+          <div class="lateral-body">Scientists discover life-saving findings and publish them in journals nobody reads. The failure isn't the research — it's the absence of a <span class="kw">DataStory</span>. The researchers who changed the world (think of vaccine adoption campaigns or climate data that moved policy) did so because they translated findings into humanized, annotated narratives with clear calls to action. Data without story is a tree falling in an empty forest.</div>
+        </div>
+      </div>
+
+      <div class="lateral-card">
+        <div class="lateral-emoji">🤝</div>
+        <div>
+          <div class="lateral-field">People Skills & Influence</div>
+          <div class="lateral-title">The DataPOV Is the "Therefore We Need To" of Every Conversation</div>
+          <div class="lateral-body">Cross-link to <em>People Skills for Analytical Thinkers</em>: analytical people over-index on the data (Act 2 — the complication) and forget to land on the resolution. The phrase "Therefore, we need to…" is the verbal equivalent of the <span class="kw">DataPOV</span> in meetings. It shifts the room from problem-wallowing to action. Use it to interrupt any meeting that has stalled in the messy middle.</div>
+        </div>
+      </div>
+
+      <div class="lateral-card">
+        <div class="lateral-emoji">🎬</div>
+        <div>
+          <div class="lateral-field">Film & Documentary Making</div>
+          <div class="lateral-title">Documentaries Are DataStories at Cinema Scale</div>
+          <div class="lateral-body">The best documentaries are built on exactly this structure — situation (here's the world), complication (here's what's broken), resolution (here's what must change). They use <span class="kw">humanized data</span> — single stories representing millions — to make statistics felt. The director is a data storyteller. The film is a <span class="kw">SlideDoc</span> with a budget. What would your next data presentation look like if you were directing a documentary instead of building a deck?</div>
+        </div>
+      </div>
+
+      <div class="lateral-card">
+        <div class="lateral-emoji">🏥</div>
+        <div>
+          <div class="lateral-field">Healthcare & Patient Communication</div>
+          <div class="lateral-title">Doctors Who Tell Stories Get Better Patient Outcomes</div>
+          <div class="lateral-body">Research shows patients who <em>understand</em> their diagnosis are far more likely to follow treatment. But most clinical communication is a data dump — test results, statistics, risk percentages — with no <span class="kw">SCR</span> structure. A doctor who says "Here's your situation, here's the complication the data reveals, and therefore we need to start X" speaks to the human brain the way it's wired. <span class="kw">Humanizing data</span> (your risk is roughly equivalent to…) creates action far better than raw numbers.</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- QUICK APPLY -->
+    <div class="section-title">
+      <span class="icon" style="background:#fdf0e0;">⚡</span>
+      Try This on Your Next Presentation
+    </div>
+    <div class="apply-grid">
+      <div class="apply-card">
+        <div class="apply-step">Action 01 — DataPOV</div>
+        <div class="apply-action">Write One Sentence Before One Slide</div>
+        <div class="apply-body">Before opening PowerPoint, write this: "Therefore, we need to [verb] [what] by [when]." If you can't complete that sentence, you're not ready to build slides yet. The DataPOV is the foundation everything else sits on.</div>
+      </div>
+      <div class="apply-card">
+        <div class="apply-step">Action 02 — Chart Titles</div>
+        <div class="apply-action">Rewrite Every Chart Title as an Insight</div>
+        <div class="apply-body">Go through your last presentation and replace every label-title ("Q3 Sales by Region") with an insight sentence ("Western Region Sales Dropped 34% Despite New Hires"). One change. Immediate impact.</div>
+      </div>
+      <div class="apply-card">
+        <div class="apply-step">Action 03 — Humanize</div>
+        <div class="apply-action">Translate One Big Number</div>
+        <div class="apply-body">Find the biggest number in your next presentation. Convert it to something human-scale — time, distance, everyday objects, relatable comparisons. If it can be felt, it will be remembered. If it can't be felt, it won't matter.</div>
+      </div>
+      <div class="apply-card">
+        <div class="apply-step">Action 04 — Meetings</div>
+        <div class="apply-action">Use "Therefore, We Need To…"</div>
+        <div class="apply-body">Next time a meeting gets stuck in problem-mode, say: "Therefore, we need to…" and pause. It's a pattern interrupt. It forces everyone in the room to shift from analysis to action. Use it daily.</div>
+      </div>
+    </div>
+
+  </div><!-- end datastory -->
+
+
+  <!-- ═══ BOOK 5: THE NEXT CONVERSATION ═══ -->
+  <div class="book-card" id="next-conversation">
+
+    <div class="book-header">
+      <div>
+        <div class="book-title">The Next<br>Conversation</div>
+        <div class="book-author">by Jefferson Fisher</div>
+      </div>
+      <div class="one-liner">You can't rewrite<br>the last conversation.<br>But you can<br>reshape the next one.</div>
+    </div>
+
+    <div class="big-idea">
+      <div class="big-idea-label">⚡ The Big Idea (ELI10)</div>
+      <p>Most people think a good communicator is someone who always knows the perfect thing to say. Jefferson Fisher — a trial lawyer who's spent his career in high-stakes arguments — says that's wrong. The best communicators aren't the ones with the best words. They're the ones who <strong>don't lose themselves</strong> when the heat turns up. This book gives you three things: <span class="kw">control</span> (master yourself, not the other person), <span class="kw">confidence</span> (say what you mean without hedging), and <span class="kw">connection</span> (stop trying to win — start trying to understand). He recorded his first videos from his truck at lunch. Millions of people watched. Because they were tired of losing conversations they didn't need to lose.</p>
+    </div>
+
+    <!-- THE 3-PART SYSTEM -->
+    <div class="section-title">
+      <span class="icon" style="background:#e8f5f3;">🗺️</span>
+      The 3-Part System — Control → Confidence → Connect
+    </div>
+    <div style="background:#fff; border-radius:16px; padding:28px; margin-bottom:36px; box-shadow: 0 2px 12px rgba(0,0,0,0.05);">
+      <p style="font-size:0.85rem; color:#5a4a38; margin-bottom:20px; line-height:1.6;">Fisher's framework works like a recipe. You need all three ingredients in order — skip one and the whole thing falls apart. Think of it as a staircase: you can't build <span class="kw">connection</span> without first having <span class="kw">confidence</span>, and you can't have confidence without first having <span class="kw">control</span>.</p>
+      <div style="display:grid; gap:10px;">
+        <div style="background:linear-gradient(135deg,#e8f5f3,#d4ece8); border-radius:10px; padding:18px 20px; display:grid; grid-template-columns:100px 1fr; gap:14px; align-items:start;">
+          <div>
+            <div style="font-weight:800; font-size:0.75rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--teal); margin-bottom:4px;">Step 1</div>
+            <div style="font-family:'Fraunces',serif; font-weight:700; font-size:1rem;">Control</div>
+          </div>
+          <div style="font-size:0.86rem; color:#4a3e30; line-height:1.6;">Master <em>yourself</em>, not the other person. The moment you try to control them, you've already lost. Let your breath be the first word you say. Regulate your physiology before your words.</div>
+        </div>
+        <div style="background:linear-gradient(135deg,#fdf3e0,#fae8c0); border-radius:10px; padding:18px 20px; display:grid; grid-template-columns:100px 1fr; gap:14px; align-items:start;">
+          <div>
+            <div style="font-weight:800; font-size:0.75rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--amber); margin-bottom:4px;">Step 2</div>
+            <div style="font-family:'Fraunces',serif; font-weight:700; font-size:1rem;">Confidence</div>
+          </div>
+          <div style="font-size:0.86rem; color:#4a3e30; line-height:1.6;">Say what you mean without hedging, over-apologizing, or burying your point in filler words. Confidence isn't loudness — it's calm certainty. <em>Confidence is as assertive does.</em></div>
+        </div>
+        <div style="background:linear-gradient(135deg,#f3f0ff,#e8e0f5); border-radius:10px; padding:18px 20px; display:grid; grid-template-columns:100px 1fr; gap:14px; align-items:start;">
+          <div>
+            <div style="font-weight:800; font-size:0.75rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--lavender); margin-bottom:4px;">Step 3</div>
+            <div style="font-family:'Fraunces',serif; font-weight:700; font-size:1rem;">Connect</div>
+          </div>
+          <div style="font-size:0.86rem; color:#4a3e30; line-height:1.6;">Stop trying to win. Start trying to unravel. Arguments aren't battles — they're knots. Connection happens when both people feel heard, even if they don't agree. <em>Be a bridge. When you can't, be a lighthouse.</em></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CORE INSIGHTS -->
+    <div class="section-title">
+      <span class="icon" style="background:#fdf0e0;">🔍</span>
+      Core Insights — Click to Expand
+    </div>
+    <div class="insights">
+
+      <div class="insight" onclick="toggleInsight(this)">
+        <span class="insight-toggle">+</span>
+        <div class="insight-num">Insight 01</div>
+        <div class="insight-title">Never Win an Argument — Unravel It Instead</div>
+        <div class="insight-body">
+          This is Fisher's most counterculture line: <em>never try to win an argument.</em> When you set out to win, you lose the relationship. All you've won is their contempt. You become the first one who has to apologize — because you said things you didn't mean in order to score points.<br><br>
+          The reframe: arguments aren't battles to win. They're <span class="kw">knots to unravel</span>. Find where the rope is tangled. Approach with curiosity instead of combat. This isn't weakness — it's the smarter strategy.<br><br>
+          Every time someone reacts way bigger than the situation warrants — a level-one comment that triggers a level-ten reaction — that's information. It means there's a <span class="kw">hidden conversation</span> happening inside their head that you weren't invited to. Something else is going on. Winning the surface argument misses the real one entirely.
+        </div>
+      </div>
+
+      <div class="insight" onclick="toggleInsight(this)">
+        <span class="insight-toggle">+</span>
+        <div class="insight-num">Insight 02</div>
+        <div class="insight-title">The Ignition Phase — Why You Say Things You Regret</div>
+        <div class="insight-body">
+          Every argument has two physiological phases, and most people only know about the first one.<br><br>
+          <strong>The <span class="kw">Ignition Phase</span>:</strong> A trigger fires — a tone, a word, a look. Your body's fight-or-flight system activates. Heart rate spikes. Blood moves away from your thinking brain to your survival brain. Logic fades. This is why you say things you don't mean: you're not running on your full brain anymore.<br><br>
+          <strong>The <span class="kw">Cooling Phase</span>:</strong> The body calms. Rational thought returns. This is when you think of all the things you should have said.<br><br>
+          The entire game is catching yourself <em>before</em> ignition. The tools: a <span class="kw">conversational breath</span> (double inhale through the nose, long exhale), a quick body scan, and a personal <span class="kw">small talk</span> — a short phrase you mentally repeat like "find the heart of it" or "stand firm." These three things take 10 seconds. They can save a relationship.
+        </div>
+      </div>
+
+      <div class="insight" onclick="toggleInsight(this)">
+        <span class="insight-toggle">+</span>
+        <div class="insight-num">Insight 03</div>
+        <div class="insight-title">Silence Is Your Most Powerful Tool — and You're Afraid of It</div>
+        <div class="insight-body">
+          Most people rush when they're nervous. They fill silence with words that make things worse. Fisher's counterintuitive rule: slow everything down. Rushing is a sign of the <span class="kw">ignition phase</span>. Speed signals anxiety. Calm signals authority.<br><br>
+          <strong>Short pause (1–4 seconds):</strong> Adds weight to your words. Makes you look deliberate and credible. Used for emphasis.<br><br>
+          <strong>Long pause (5–10 seconds):</strong> Causes the other person to reflect on what <em>they</em> just said. Especially powerful after an insult or a dishonest statement. You don't have to respond. Let the silence work.<br><br>
+          The line to remember: <em>"Silence can't be misquoted."</em> You cannot walk back silence. You can walk back almost nothing you said in the ignition phase.
+        </div>
+      </div>
+
+      <div class="insight" onclick="toggleInsight(this)">
+        <span class="insight-toggle">+</span>
+        <div class="insight-num">Insight 04</div>
+        <div class="insight-title">Transmission vs. Communication — Most of Us Are Just Sending</div>
+        <div class="insight-body">
+          We live in <span class="kw">send mode</span>. Texts, emails, posts — we fire information at people and call it communication. Fisher draws a sharp line: transmission is one-way. True <span class="kw">communication</span> requires two things — understanding and acknowledgment.<br><br>
+          <em>You can acknowledge without agreeing.</em> This is the key. Saying "I hear that this is important to you" doesn't mean you agree with the position. It means you've confirmed receipt of their humanity. That alone defuses most arguments.<br><br>
+          Connection has three killers: not being aware of your own signals (you're broadcasting stress without knowing it), not trying to understand the other person's actual experience (you're debating a version of them you invented), and lacking self-assurance — so you hedge, over-apologize, and go soft exactly when you need to be clear.
+        </div>
+      </div>
+
+      <div class="insight" onclick="toggleInsight(this)">
+        <span class="insight-toggle">+</span>
+        <div class="insight-num">Insight 05</div>
+        <div class="insight-title">Frame the Conversation or It Frames You</div>
+        <div class="insight-body">
+          Unframed conversations wander, spiral, and leave everyone feeling like they went backwards. Fisher's fix: set a <span class="kw">conversational frame</span> before the conversation begins — like a picture frame that limits what's in the picture.<br><br>
+          <strong>3-step framing method:</strong><br>
+          1. <em>Name the topic</em> — "I want to talk about how we communicate when we disagree."<br>
+          2. <em>State the desired outcome</em> — "I'd like us to leave feeling like we have a plan."<br>
+          3. <em>Ask for consent</em> — "Is now a good time for that?"<br><br>
+          That last step is the most important and the most skipped. Asking for consent gives the other person agency. They're not being ambushed — they're being invited. That changes everything about how they show up.<br><br>
+          If the conversation drifts off-topic: acknowledge the detour, then calmly redirect. "That's worth discussing — can we come back to it after we finish this?"
+        </div>
+      </div>
+
+      <div class="insight" onclick="toggleInsight(this)">
+        <span class="insight-toggle">+</span>
+        <div class="insight-num">Insight 06</div>
+        <div class="insight-title">Conversational Values — Decisions Made Before the First Word</div>
+        <div class="insight-body">
+          Before any high-stakes conversation, Fisher asks you to identify one value you'll embody in it. Kindness. Honesty. Clarity. Courage. Just one.<br><br>
+          When your values are set, many decisions are already made. You don't have to think in the moment whether to snap back or stay calm — your value made that decision for you before the conversation started. This is the deepest form of <span class="kw">control</span>: pre-deciding who you are in hard moments.<br><br>
+          He also introduces <span class="kw">conversational spikes</span> — behaviours that kill connection without you realizing it: interrupting, assuming, summarizing incorrectly, using "always" and "never," issuing conditional apologies ("I'm sorry <em>if</em> you were offended"). These are the unconscious habits that make the other person build a wall. Knowing your own spikes is the first step to dismantling them.
+        </div>
+      </div>
+
+    </div>
+
+    <!-- PHRASE SWAPS -->
+    <div class="section-title">
+      <span class="icon" style="background:#f3f0ff;">💬</span>
+      The Phrase Swap — Weak vs. Strong Language
+    </div>
+    <div style="background:#fff; border-radius:16px; padding:28px; margin-bottom:36px; box-shadow: 0 2px 12px rgba(0,0,0,0.05);">
+      <p style="font-size:0.85rem; color:#5a4a38; margin-bottom:20px; line-height:1.6;">Fisher is obsessed with the exact words you choose. Weak language hedges. Strong language owns. These swaps seem small — but they fundamentally change how people receive you.</p>
+      <div style="display:grid; gap:10px;">
+        <div style="display:grid; grid-template-columns:1fr 20px 1fr; gap:8px; align-items:center; padding:12px 16px; background:var(--cream); border-radius:8px; font-size:0.83rem;">
+          <div style="color:#a09080; text-decoration:line-through;">"I think that…"</div>
+          <div style="text-align:center; color:var(--teal); font-weight:700;">→</div>
+          <div style="font-weight:600; color:var(--ink);">"I am confident that…"</div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 20px 1fr; gap:8px; align-items:center; padding:12px 16px; background:var(--cream); border-radius:8px; font-size:0.83rem;">
+          <div style="color:#a09080; text-decoration:line-through;">"You're wrong."</div>
+          <div style="text-align:center; color:var(--teal); font-weight:700;">→</div>
+          <div style="font-weight:600; color:var(--ink);">"I see it differently."</div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 20px 1fr; gap:8px; align-items:center; padding:12px 16px; background:var(--cream); border-radius:8px; font-size:0.83rem;">
+          <div style="color:#a09080; text-decoration:line-through;">"Sorry to bother you…"</div>
+          <div style="text-align:center; color:var(--teal); font-weight:700;">→</div>
+          <div style="font-weight:600; color:var(--ink);">"Could you help me with X?"</div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 20px 1fr; gap:8px; align-items:center; padding:12px 16px; background:var(--cream); border-radius:8px; font-size:0.83rem;">
+          <div style="color:#a09080; text-decoration:line-through;">"You never listen."</div>
+          <div style="text-align:center; color:var(--teal); font-weight:700;">→</div>
+          <div style="font-weight:600; color:var(--ink);">"I feel unheard when…"</div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 20px 1fr; gap:8px; align-items:center; padding:12px 16px; background:var(--cream); border-radius:8px; font-size:0.83rem;">
+          <div style="color:#a09080; text-decoration:line-through;">"I'm sorry you feel that way."</div>
+          <div style="text-align:center; color:var(--teal); font-weight:700;">→</div>
+          <div style="font-weight:600; color:var(--ink);">"Apologize for what you did, not my feelings."</div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 20px 1fr; gap:8px; align-items:center; padding:12px 16px; background:var(--cream); border-radius:8px; font-size:0.83rem;">
+          <div style="color:#a09080; text-decoration:line-through;">"Let me think about that." (nervous)</div>
+          <div style="text-align:center; color:var(--teal); font-weight:700;">→</div>
+          <div style="font-weight:600; color:var(--ink);">[pause] "Let me think about that." (deliberate)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LATERAL LEAPS -->
+    <div class="section-title">
+      <span class="icon" style="background:#e8f5f3;">🚀</span>
+      Lateral Leaps — Where This Changes Everything
+    </div>
+    <div class="lateral">
+
+      <div class="lateral-card">
+        <div class="lateral-emoji">⚖️</div>
+        <div>
+          <div class="lateral-field">Negotiation & Sales</div>
+          <div class="lateral-title">The Best Negotiators Never Try to Win Either</div>
+          <div class="lateral-body">Chris Voss endorsed this book for a reason. The best negotiators — just like Fisher's best trial lawyers — know that pressing for a win creates resistance. The <span class="kw">framing method</span> (name topic, state outcome, ask consent) is exactly what elite negotiators do before any high-stakes discussion: they set the playing field before the game starts. And the <span class="kw">long pause</span> after a bold offer? That's basic negotiation — let them fill the silence.</div>
+        </div>
+      </div>
+
+      <div class="lateral-card">
+        <div class="lateral-emoji">🧠</div>
+        <div>
+          <div class="lateral-field">People Skills & Needs</div>
+          <div class="lateral-title">The Hidden Conversation = The Unmet Need</div>
+          <div class="lateral-body">Cross-link to both <em>People Skills for Analytical Thinkers</em> and <em>Mattering</em>: when someone goes level-ten on a level-one conversation, Fisher says there's a <span class="kw">hidden conversation</span> inside them. That hidden conversation is almost always an unmet <span class="kw">need</span> (esteem, belonging, importance) or a triggered <span class="kw">belief</span>. The tools connect directly: Fisher gives you the in-the-moment regulation; People Skills gives you the framework to decode what's underneath.</div>
+        </div>
+      </div>
+
+      <div class="lateral-card">
+        <div class="lateral-emoji">🏛️</div>
+        <div>
+          <div class="lateral-field">Politics & Public Discourse</div>
+          <div class="lateral-title">Why Political Arguments Go Nowhere — And What Would Fix It</div>
+          <div class="lateral-body">Political debate is pure <span class="kw">ignition phase</span> with no cooling. Everyone is broadcasting, nobody is communicating. There's zero <span class="kw">acknowledgment</span> before rebuttal — just transmission. Fisher's insight that you can acknowledge without agreeing is the entire missing ingredient in public discourse. The moment you make someone feel heard, they stop defending and start actually listening. Politics produces the exact opposite environment.</div>
+        </div>
+      </div>
+
+      <div class="lateral-card">
+        <div class="lateral-emoji">👨‍👩‍👧</div>
+        <div>
+          <div class="lateral-field">Parenting</div>
+          <div class="lateral-title">Children's Meltdowns Are Just Ignition Phases With No Off Switch</div>
+          <div class="lateral-body">A child's prefrontal cortex — the thinking brain — isn't fully developed until their mid-20s. They are physiologically <em>stuck</em> in the <span class="kw">ignition phase</span> more often and longer than adults. Screaming "calm down" is neurologically useless. Fisher's approach — acknowledge first, name the emotion, lower your own voice — works because it models the <span class="kw">cooling phase</span>. A regulated adult literally co-regulates a dysregulated child. The parent has to go first.</div>
+        </div>
+      </div>
+
+      <div class="lateral-card">
+        <div class="lateral-emoji">🤖</div>
+        <div>
+          <div class="lateral-field">AI & Human-Computer Interaction</div>
+          <div class="lateral-title">Prompting Is Just Conversational Framing</div>
+          <div class="lateral-body">Fisher's <span class="kw">conversational frame</span> — name the topic, state the desired outcome, ask for consent — is structurally identical to a great AI prompt: here's the context, here's what I need, here's the format. Both fail the same way when the frame is missing: the conversation wanders, you get something vague, everyone's frustrated. The same principle that fixes a heated family argument also produces better AI outputs. The skill transfers exactly.</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- QUICK APPLY -->
+    <div class="section-title">
+      <span class="icon" style="background:#fdf0e0;">⚡</span>
+      Try These Before Your Next Hard Conversation
+    </div>
+    <div class="apply-grid">
+      <div class="apply-card">
+        <div class="apply-step">Action 01 — Control</div>
+        <div class="apply-action">Let Your Breath Be the First Word</div>
+        <div class="apply-body">In your next heated moment, before you say anything — breathe. Double inhale through the nose, long exhale. That 4 seconds is not weakness. It's the gap between reaction and response. The gap where you stay yourself.</div>
+      </div>
+      <div class="apply-card">
+        <div class="apply-step">Action 02 — Confidence</div>
+        <div class="apply-action">Remove One Hedge Today</div>
+        <div class="apply-body">Notice every time you say "I think," "maybe," "sorry to bother you," or "does that make sense?" Replace one of them with a direct statement. Just one. Feel the difference in how you're received.</div>
+      </div>
+      <div class="apply-card">
+        <div class="apply-step">Action 03 — Connect</div>
+        <div class="apply-action">Acknowledge Before You Respond</div>
+        <div class="apply-body">Before your next rebuttal in any conversation — say one acknowledging sentence first. "I can see why you'd feel that way." "That sounds frustrating." You don't have to agree. Just confirm receipt of their humanity. Watch what happens.</div>
+      </div>
+      <div class="apply-card">
+        <div class="apply-step">Action 04 — Frame</div>
+        <div class="apply-action">Set the Frame Before the Hard Talk</div>
+        <div class="apply-body">Before any difficult conversation this week: name the topic, state what you hope to achieve, and ask "Is now a good time?" Three sentences. Takes 20 seconds. Prevents 20 minutes of mess.</div>
+      </div>
+    </div>
+
+  </div><!-- end next-conversation -->
+
+
+
+  <!-- DYNAMIC INDEX (rebuilt by JS) -->
+  <div id="dynamic-index" class="index-section">
+    <div class="index-title">📖 My Book Index</div>
+    <div class="index-sub">Click any book to jump back to it</div>
+    <div id="index-entries"></div>
+  </div>
+
+  <!-- DYNAMIC BOOK CARDS (user-added) -->
+  <div id="user-books"></div>
+
+</div><!-- end container -->
+
+<!-- ADD BOOK MODAL -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeAddModal()">✕</button>
+    <div class="modal-title">Add a Book</div>
+    <div class="modal-sub">Type a book title (and optionally the author). Claude will research it and generate a full summary card — insights, lateral leaps, and quick actions — in the style of your library.</div>
+
+    <details class="api-key-section">
+      <summary>🔑 Anthropic API Key (required once)</summary>
+      <input type="password" id="apiKeyInput" placeholder="sk-ant-..." oninput="saveApiKey(this.value)" />
+      <div style="font-size:0.75rem; color:#a09080; margin-top:8px;">Saved locally in your browser. Get a key at console.anthropic.com.</div>
+    </details>
+
+    <label>Book Title *</label>
+    <input type="text" id="bookTitleInput" placeholder="e.g. Thinking, Fast and Slow" />
+
+    <label>Author (optional)</label>
+    <input type="text" id="bookAuthorInput" placeholder="e.g. Daniel Kahneman" />
+
+    <label>Your Notes (optional)</label>
+    <textarea id="bookNotesInput" placeholder="What stood out to you? What do you want to remember? (Leave blank for a full AI summary)"></textarea>
+
+    <button class="modal-btn" id="generateBtn" onclick="generateBook()">✨ Generate Book Card</button>
+    <div class="modal-status" id="modalStatus"></div>
+  </div>
+</div>
+
+<!-- GENERATING OVERLAY -->
+<div class="generating-overlay" id="generatingOverlay">
+  <div class="spinner"></div>
+  <div class="generating-text">Building your book card…</div>
+  <div class="generating-sub" id="generatingStep">Researching the book</div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+// ORIGINAL UI FUNCTIONS
+// ═══════════════════════════════════════
+function showBook(id) {
+  document.querySelectorAll('.book-card').forEach(c => c.classList.remove('visible'));
+  document.querySelectorAll('.shelf-book').forEach(b => b.classList.remove('active'));
+  const card = document.getElementById(id);
+  if (card) {
+    card.classList.add('visible');
+    setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+  }
+  document.querySelectorAll('.shelf-book').forEach(b => {
+    if (b.getAttribute('onclick') && b.getAttribute('onclick').includes(id)) {
+      b.classList.add('active');
+    }
+  });
+  // Also highlight dynamic shelf buttons
+  document.querySelectorAll('[data-book-id]').forEach(b => {
+    b.classList.toggle('active', b.dataset.bookId === id);
+  });
+}
+
+function toggleInsight(el) { el.classList.toggle('open'); }
+
+function togglePyramid(el) {
+  const isOpen = el.classList.contains('open');
+  document.querySelectorAll('.pyramid-level').forEach(l => l.classList.remove('open'));
+  if (!isOpen) el.classList.add('open');
+}
+
+// ═══════════════════════════════════════
+// STATIC BOOK REGISTRY (built-ins)
+// ═══════════════════════════════════════
+const BUILTIN_BOOKS = [
+  { id: 'people-skills', title: 'People Skills for Analytical Thinkers', author: 'Gilbert Eijkelenboom', tagEmoji: '🧠', tagLabel: 'Influence', tagline: 'Read people like code — then run better programs together' },
+  { id: 'big-trust',     title: 'Big Trust',                              author: 'Shadé Zahrai',           tagEmoji: '🔑', tagLabel: 'Confidence', tagline: "You can't outperform self-doubt — but you can rewire it with 4 inner upgrades" },
+  { id: 'mattering',     title: 'Mattering',                              author: 'Jennifer Breheny Wallace',tagEmoji: '🫂', tagLabel: 'Connection', tagline: 'Loneliness, burnout, rage — all symptoms of the same unmet need to matter' },
+  { id: 'datastory',     title: 'DataStory',                              author: 'Nancy Duarte',           tagEmoji: '📊', tagLabel: 'Communication', tagline: "Data without story is trivia — here's the formula to make numbers move people" },
+  { id: 'next-conversation', title: 'The Next Conversation',              author: 'Jefferson Fisher',       tagEmoji: '🗣️', tagLabel: 'Conflict', tagline: 'Stop trying to win — arguments are knots to unravel, not battles to win' },
+];
+
+// ═══════════════════════════════════════
+// LOCAL STORAGE
+// ═══════════════════════════════════════
+function getUserBooks() {
+  try { return JSON.parse(localStorage.getItem('bookbrain_books') || '[]'); } catch { return []; }
+}
+function saveUserBooks(books) {
+  localStorage.setItem('bookbrain_books', JSON.stringify(books));
+}
+function getApiKey() { return localStorage.getItem('bookbrain_apikey') || ''; }
+function saveApiKey(k) { localStorage.setItem('bookbrain_apikey', k); }
+
+// ═══════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════
+function renderAll() {
+  renderUserBookCards();
+  renderIndex();
+  renderShelf();
+}
+
+function renderShelf() {
+  const shelf = document.querySelector('.shelf');
+  // Remove previously injected dynamic shelf items
+  shelf.querySelectorAll('[data-book-id]').forEach(el => el.remove());
+  const addBtn = shelf.querySelector('.shelf-book-add');
+  const userBooks = getUserBooks();
+  userBooks.forEach(book => {
+    const div = document.createElement('div');
+    div.className = 'shelf-book';
+    div.dataset.bookId = book.id;
+    div.setAttribute('onclick', `showBook('${book.id}')`);
+    div.innerHTML = `<div class="b-title">${escHtml(book.title)}</div><div class="b-keyword">${escHtml(book.tagEmoji || '📖')} ${escHtml(book.tagline || '')}</div>`;
+    shelf.insertBefore(div, addBtn);
+  });
+}
+
+function renderIndex() {
+  const container = document.getElementById('index-entries');
+  if (!container) return;
+  const allBooks = [...BUILTIN_BOOKS, ...getUserBooks()];
+  container.innerHTML = allBooks.map(book => `
+    <div class="index-entry" onclick="showBook('${book.id}')">
+      <div>
+        <div class="index-book-title">${escHtml(book.title)}</div>
+        <div class="index-book-author">${escHtml(book.author)} &nbsp;·&nbsp; <em>${escHtml(book.tagline || '')}</em></div>
+      </div>
+      <div class="index-tag">${escHtml(book.tagEmoji || '📖')} ${escHtml(book.tagLabel || 'Reading')}</div>
+    </div>
+  `).join('');
+}
+
+function renderUserBookCards() {
+  const container = document.getElementById('user-books');
+  if (!container) return;
+  const userBooks = getUserBooks();
+  container.innerHTML = userBooks.map(book => `
+    <div class="book-card" id="${book.id}">
+      ${book.html}
+      <div style="margin-top: 8px; margin-bottom: 48px;">
+        <button class="delete-book-btn" onclick="deleteBook('${book.id}')">🗑 Remove this book</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function deleteBook(id) {
+  if (!confirm('Remove this book from your library?')) return;
+  const books = getUserBooks().filter(b => b.id !== id);
+  saveUserBooks(books);
+  renderAll();
+}
+
+function escHtml(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ═══════════════════════════════════════
+// MODAL
+// ═══════════════════════════════════════
+function openAddModal() {
+  document.getElementById('addModal').classList.add('open');
+  document.getElementById('bookTitleInput').focus();
+  // Pre-fill API key if saved
+  document.getElementById('apiKeyInput').value = getApiKey();
+}
+function closeAddModal() {
+  document.getElementById('addModal').classList.remove('open');
+  document.getElementById('modalStatus').textContent = '';
+  document.getElementById('modalStatus').className = 'modal-status';
+  document.getElementById('bookTitleInput').value = '';
+  document.getElementById('bookAuthorInput').value = '';
+  document.getElementById('bookNotesInput').value = '';
+  document.getElementById('generateBtn').disabled = false;
+}
+document.getElementById('addModal').addEventListener('click', function(e) {
+  if (e.target === this) closeAddModal();
+});
+
+// ═══════════════════════════════════════
+// AI BOOK GENERATION
+// ═══════════════════════════════════════
+const GENERATION_STEPS = [
+  'Researching the book…',
+  'Writing the Big Idea…',
+  'Building core insights…',
+  'Finding lateral leaps…',
+  'Crafting quick actions…',
+  'Polishing the card…',
+];
+let stepInterval = null;
+
+function startStepCycler() {
+  let i = 0;
+  const el = document.getElementById('generatingStep');
+  el.textContent = GENERATION_STEPS[0];
+  stepInterval = setInterval(() => {
+    i = (i + 1) % GENERATION_STEPS.length;
+    el.textContent = GENERATION_STEPS[i];
+  }, 2200);
+}
+function stopStepCycler() {
+  clearInterval(stepInterval);
+}
+
+async function generateBook() {
+  const title = document.getElementById('bookTitleInput').value.trim();
+  const author = document.getElementById('bookAuthorInput').value.trim();
+  const notes = document.getElementById('bookNotesInput').value.trim();
+  const apiKey = document.getElementById('apiKeyInput').value.trim() || getApiKey();
+
+  if (!title) {
+    showStatus('Please enter a book title.', true);
+    return;
+  }
+  if (!apiKey) {
+    showStatus('Please enter your Anthropic API key (expand the section above).', true);
+    return;
+  }
+
+  saveApiKey(apiKey);
+  document.getElementById('generateBtn').disabled = true;
+  showStatus('');
+
+  document.getElementById('generatingOverlay').classList.add('open');
+  startStepCycler();
+
+  const bookId = 'book-' + Date.now();
+  const authorNote = author ? `by ${author}` : '';
+  const notesNote = notes ? `\n\nThe reader's personal notes/highlights: "${notes}"` : '';
+
+  const systemPrompt = `You are a book summary writer for a personal reading library website called Book Brain. 
+Your job: generate a rich HTML snippet for ONE book card, exactly matching the style system below.
+Output ONLY valid HTML — no markdown, no code fences, no explanation. The HTML will be injected directly into a webpage.
+
+DESIGN SYSTEM (use these exact CSS classes):
+- book-header / book-title / book-author / one-liner
+- big-idea / big-idea-label
+- section-title + icon span
+- insights div > insight divs (onclick="toggleInsight(this)")
+  - insight-toggle, insight-num, insight-title, insight-body
+- lateral div > lateral-card divs (lateral-emoji, lateral-field, lateral-title, lateral-body)
+- apply-grid > apply-card (apply-step, apply-action, apply-body)
+- kw spans for key terms
+- Colors available as CSS vars: --teal, --amber, --rust, --lavender, --ink, --paper, --cream
+
+STRUCTURE TO FOLLOW (produce all sections in this order):
+1. book-header with title, author, and one-liner tagline
+2. big-idea section — ELI10 explanation of the core idea using an analogy
+3. section-title + insights (5-6 expandable insights, each with a title and meaty body)
+4. section-title + lateral (4-5 lateral leap cards connecting the book to surprising fields)
+5. section-title + apply-grid (4 quick action cards)
+
+Write substantively — each insight body should be 100-180 words. Make it feel smart, warm, and practical.
+Use <span class="kw"> for key terms throughout.
+The one-liner should be poetic and memorable (2-3 short lines separated by <br>).`;
+
+  const userPrompt = `Generate a complete book card for: "${title}" ${authorNote}${notesNote}
+
+Return only the inner HTML (starting from <div class="book-header">, ending after the apply-grid div). Do NOT include the outer <div class="book-card"> wrapper or any id attribute — those are added by the system.`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 4000,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userPrompt }],
+      }),
+    });
+
+    stopStepCycler();
+    document.getElementById('generatingOverlay').classList.remove('open');
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      const msg = err?.error?.message || `API error ${response.status}`;
+      showStatus('Error: ' + msg, true);
+      document.getElementById('generateBtn').disabled = false;
+      return;
+    }
+
+    const data = await response.json();
+    const html = data.content?.find(b => b.type === 'text')?.text || '';
+
+    if (!html || html.length < 100) {
+      showStatus('Generated content was empty. Try again.', true);
+      document.getElementById('generateBtn').disabled = false;
+      return;
+    }
+
+    // Determine metadata from the generated HTML (best-effort parse)
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+    const detectedTitle = tempDiv.querySelector('.book-title')?.textContent?.trim() || title;
+    const detectedAuthor = tempDiv.querySelector('.book-author')?.textContent?.replace(/^by\s*/i,'').trim() || author;
+    const detectedTagline = tempDiv.querySelector('.one-liner')?.textContent?.trim() || '';
+
+    // Tag emoji + label (simple heuristic based on content)
+    const tagEmoji = '📖';
+    const tagLabel = 'Reading';
+
+    const newBook = {
+      id: bookId,
+      title: detectedTitle || title,
+      author: detectedAuthor || author || 'Unknown',
+      tagline: detectedTagline,
+      tagEmoji,
+      tagLabel,
+      html,
+    };
+
+    const books = getUserBooks();
+    books.push(newBook);
+    saveUserBooks(books);
+
+    renderAll();
+    closeAddModal();
+
+    // Show the new card
+    setTimeout(() => showBook(bookId), 100);
+
+  } catch (err) {
+    stopStepCycler();
+    document.getElementById('generatingOverlay').classList.remove('open');
+    showStatus('Network error: ' + err.message, true);
+    document.getElementById('generateBtn').disabled = false;
+  }
+}
+
+function showStatus(msg, isError = false) {
+  const el = document.getElementById('modalStatus');
+  el.textContent = msg;
+  el.className = 'modal-status' + (isError ? ' error' : '');
+}
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  renderAll();
+  // Show first book by default
+  const first = document.querySelector('.book-card.visible');
+  if (!first) showBook('people-skills');
+});
+</script>
+</body>
+</html>
