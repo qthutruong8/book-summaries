@@ -1967,32 +1967,36 @@ function saveGhPath(k)  { localStorage.setItem('bookbrain_ghpath', k); }
 // ═══════════════════════════════════════
 // RENDER (index + shelf — books are now baked into HTML)
 // ═══════════════════════════════════════
+// Static tag data for built-in books
+const BUILTIN_BOOKS = {
+  'people-skills':     { tagEmoji: '🧠', tagLabel: 'Influence' },
+  'big-trust':         { tagEmoji: '🔑', tagLabel: 'Confidence' },
+  'mattering':         { tagEmoji: '🫲', tagLabel: 'Connection' },
+  'datastory':         { tagEmoji: '📊', tagLabel: 'Communication' },
+  'next-conversation': { tagEmoji: '🗣️', tagLabel: 'Conflict' },
+};
+
 function renderAll() {
   renderIndex();
-  renderShelf();
-}
-
-function renderShelf() {
-  // Nothing dynamic to inject — all books are in the HTML
 }
 
 function renderIndex() {
   const container = document.getElementById('index-entries');
   if (!container) return;
-  // Collect all book cards present in the DOM
   const cards = Array.from(document.querySelectorAll('.book-card[id]'));
   container.innerHTML = cards.map(card => {
     const id = card.id;
     const title = card.querySelector('.book-title')?.textContent?.trim() || id;
     const author = card.querySelector('.book-author')?.textContent?.replace(/^by\s*/i,'').trim() || '';
-    const tagline = card.querySelector('.one-liner')?.textContent?.trim() || '';
+    const tagline = card.querySelector('.one-liner')?.textContent?.replace(/\s+/g,' ').trim() || '';
+    const meta = BUILTIN_BOOKS[id] || { tagEmoji: '📖', tagLabel: 'Reading' };
     return `
       <div class="index-entry" onclick="showBook('${id}')">
         <div>
           <div class="index-book-title">${escHtml(title)}</div>
           <div class="index-book-author">${escHtml(author)} &nbsp;·&nbsp; <em>${escHtml(tagline)}</em></div>
         </div>
-        <div class="index-tag">📖 Reading</div>
+        <div class="index-tag">${meta.tagEmoji} ${escHtml(meta.tagLabel)}</div>
       </div>`;
   }).join('');
 }
@@ -2199,7 +2203,13 @@ RULES:
 - apply-step format: "Action 01 — Word" where Word hints at the theme (e.g. "Action 01 — Awareness")
 - The one-liner must be 2-3 very short lines separated by <br>, poetic and memorable
 - Do NOT add any wrapper div, id attribute, or anything outside these 5 sections
-- Do NOT use any CSS classes not listed above`;
+- Do NOT use any CSS classes not listed above
+
+After the closing </div> of the apply-grid, output ONE final line in this exact format:
+TAG:{"emoji":"<single emoji>","label":"<1-2 word category>"}
+
+The label should be one of: Influence, Confidence, Connection, Communication, Conflict, Productivity, Creativity, Leadership, Mindset, Science, Finance, Health, Philosophy, History, or another fitting 1-2 word category.
+Choose the emoji that best represents the book's theme. This line will be stripped before display.`;
 
   const userPrompt = `Generate a complete book card for: "${title}"${author ? ` by ${author}` : ''}${notes ? `\n\nReader's personal notes/highlights: "${notes}"` : ''}
 
@@ -2227,9 +2237,17 @@ Follow the structure template exactly. Start your output with <div class="book-h
     const generatedHtml = aiData.content?.find(b => b.type === 'text')?.text || '';
     if (!generatedHtml || generatedHtml.length < 100) throw new Error('Generated content was empty. Please try again.');
 
+    // Extract TAG line and strip it from the HTML
+    const tagMatch = generatedHtml.match(/TAG:(\{[^}]+\})/);
+    let tagEmoji = '📖', tagLabel = 'Reading';
+    if (tagMatch) {
+      try { const t = JSON.parse(tagMatch[1]); tagEmoji = t.emoji || tagEmoji; tagLabel = t.label || tagLabel; } catch {}
+    }
+    const cleanHtml = generatedHtml.replace(/\nTAG:\{[^}]+\}/, '').replace(/TAG:\{[^}]+\}/, '').trim();
+
     // Parse metadata from generated HTML
     const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = generatedHtml;
+    tempDiv.innerHTML = cleanHtml;
     const detectedTitle   = tempDiv.querySelector('.book-title')?.textContent?.trim() || title;
     const detectedAuthor  = tempDiv.querySelector('.book-author')?.textContent?.replace(/^by\s*/i,'').trim() || author || '';
     const detectedTagline = tempDiv.querySelector('.one-liner')?.textContent?.replace(/\s+/g,' ').trim() || '';
@@ -2242,24 +2260,27 @@ Follow the structure template exactly. Start your output with <div class="book-h
     const originalHtml = decodeURIComponent(escape(atob(ghFile.content.replace(/\n/g,''))));
 
     // ── STEP 3: Build the shelf + index HTML snippets ──
-    const shelfItemHtml = `<div class="shelf-book" onclick="showBook('${bookId}')"><div class="b-title">${escHtml(detectedTitle)}</div><div class="b-keyword">📖 ${escHtml(detectedTagline.slice(0,50))}</div></div>`;
+    const shelfItemHtml = `<div class="shelf-book" onclick="showBook('${bookId}')"><div class="b-title">${escHtml(detectedTitle)}</div><div class="b-keyword">${tagEmoji} ${escHtml(detectedTagline.slice(0,50))}</div></div>`;
 
     const indexEntryHtml = `<div class="index-entry" onclick="showBook('${bookId}')">
       <div>
         <div class="index-book-title">${escHtml(detectedTitle)}</div>
         <div class="index-book-author">${escHtml(detectedAuthor)} &nbsp;·&nbsp; <em>${escHtml(detectedTagline)}</em></div>
       </div>
-      <div class="index-tag">📖 Reading</div>
+      <div class="index-tag">${tagEmoji} ${escHtml(tagLabel)}</div>
     </div>`;
 
     // ── STEP 4: Inject into HTML ──
     document.getElementById('generatingStep').textContent = 'Patching your file…';
-    const updatedHtml = injectBookIntoHtml(originalHtml, bookId, generatedHtml, shelfItemHtml, indexEntryHtml);
+    const updatedHtml = injectBookIntoHtml(originalHtml, bookId, cleanHtml, shelfItemHtml, indexEntryHtml);
 
     // ── STEP 5: Commit to GitHub ──
     document.getElementById('generatingStep').textContent = 'Committing to GitHub…';
     const updatedB64 = btoa(unescape(encodeURIComponent(updatedHtml)));
     await ghPutFile(ghToken, ghRepo, ghPath, ghFile.sha, updatedB64, `Add book: ${detectedTitle}`);
+
+    // Register tag so index re-render shows correct tag immediately
+    BUILTIN_BOOKS[bookId] = { tagEmoji, tagLabel };
 
     // ── DONE ──
     stopStepCycler('Done! Reloading…');
